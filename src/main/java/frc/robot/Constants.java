@@ -38,8 +38,8 @@ public final class Constants {
     public static final int kBButton = 2;
     public static final int kXButton = 3;
     public static final int kYButton = 4;
-    public static final int kLeftBumber = 5;
-    public static final int kRightBumber = 6;
+    public static final int kLeftBumper = 5;
+    public static final int kRightBumper = 6;
     public static final int kBackButton = 7;
     public static final int kStartButton = 8;
     public static final int kLeftStickButton = 9;
