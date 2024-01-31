@@ -5,11 +5,16 @@
 package frc.robot.subsystems;
 
 import com.kauailabs.navx.frc.AHRS;
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
+import com.pathplanner.lib.util.PIDConstants;
+import com.pathplanner.lib.util.ReplanningConfig;
 
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.kinematics.Kinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -19,6 +24,7 @@ import edu.wpi.first.networktables.GenericEntry;
 import edu.wpi.first.util.WPIUtilJNI;
 import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.SPI;
 import frc.robot.SwerveUtils;
 import frc.robot.Constants.DriveConstants;
@@ -54,6 +60,9 @@ public class DriveSubsystem extends SubsystemBase {
   private double rotatingBuffer = 0;
   private boolean rotating = false;
 
+  private double xSpeedDelivered; 
+  private double ySpeedDelivered; 
+  private double rotDelivered;
   
   // Slew rate filter variables for controlling lateral acceleration
   private double m_currentRotation = 0.0;
@@ -93,6 +102,32 @@ public class DriveSubsystem extends SubsystemBase {
   public DriveSubsystem() {
     Shuffleboard.getTab("Drivebase").add("Drive/Gyro Angle", -m_gyro.getAngle()).getEntry();
     Shuffleboard.getTab("Drivebase").add("Drive/Pose Angle", getHeading()).getEntry();
+
+    AutoBuilder.configureHolonomic(
+      this::getPose, // Robot pose supplier
+      this::resetPose, // Method to reset odometry (will be called if your auto has a starting pose)
+      this::getRobotRelativeSpeeds, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
+      this::driveRobotRelative, // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds
+      new HolonomicPathFollowerConfig( // HolonomicPathFollowerConfig, this should likely live in your Constants class
+        new PIDConstants(5.0, 0.0, 0.0), // Translation PID constants
+        new PIDConstants(5.0, 0.0, 0.0), // Rotation PID constants
+        4.5, // Max module speed, in m/s
+        0.4, // Drive base radius in meters. Distance from robot center to furthest module.
+        new ReplanningConfig() // Default path replanning config. See the API for the options here
+      ),
+      () -> {
+        // Boolean supplier that controls when the path will be mirrored for the red alliance
+        // This will flip the path being followed to the red side of the field.
+        // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
+
+        var alliance = DriverStation.getAlliance();
+        if (alliance.isPresent()) {
+          return alliance.get() == DriverStation.Alliance.Red;
+        }
+        return false;
+      },
+      this // Reference to this subsystem to set requirements
+    );
   }
 
   @Override
@@ -110,13 +145,13 @@ public class DriveSubsystem extends SubsystemBase {
             m_rearRight.getPosition()
         });
 
-        drveSfty = driveSafety.getBoolean(true);
+    drveSfty = driveSafety.getBoolean(true);
     
-      gyroAngle.setDouble(-m_gyro.getAngle());
-      poseAngle.setDouble(getHeading());
-      frontLeftPos.setDouble(m_frontLeft.getPosition().angle.getDegrees());
-      yaw.setDouble(m_gyro.getYaw());
-      pitch.setDouble(m_gyro.getPitch());  
+    gyroAngle.setDouble(-m_gyro.getAngle());
+    poseAngle.setDouble(getHeading());
+    frontLeftPos.setDouble(m_frontLeft.getPosition().angle.getDegrees());
+    yaw.setDouble(m_gyro.getYaw());
+    pitch.setDouble(m_gyro.getPitch());  
     
   }
 
@@ -134,7 +169,7 @@ public class DriveSubsystem extends SubsystemBase {
    *
    * @param pose The pose to which to set the odometry.
    */
-  public void resetOdometry(Pose2d pose) {
+  public void resetPose(Pose2d pose) {
     m_odometry.resetPosition(
         Rotation2d.fromDegrees(-m_gyro.getAngle()),
         new SwerveModulePosition[] {
@@ -146,6 +181,16 @@ public class DriveSubsystem extends SubsystemBase {
         pose);
     m_gyro.reset();
     
+  }
+
+  public ChassisSpeeds getRobotRelativeSpeeds() {
+     
+    SwerveModuleState frontLeftState = m_frontLeft.getState();
+    SwerveModuleState frontRightState = m_frontLeft.getState();
+    SwerveModuleState backLeftState = m_frontLeft.getState();
+    SwerveModuleState backRightState = m_frontLeft.getState();
+
+    return DriveConstants.kDriveKinematics.toChassisSpeeds(frontLeftState, frontRightState, backLeftState, backRightState);
   }
 
   /**
@@ -247,9 +292,9 @@ public class DriveSubsystem extends SubsystemBase {
       }
   
       // Convert the commanded speeds into the correct units for the drivetrain
-      double xSpeedDelivered = xSpeedCommanded * DriveConstants.kMaxSpeedMetersPerSecond;
-      double ySpeedDelivered = ySpeedCommanded * DriveConstants.kMaxSpeedMetersPerSecond;
-      double rotDelivered = m_currentRotation * DriveConstants.kMaxAngularSpeed;
+      xSpeedDelivered = xSpeedCommanded * DriveConstants.kMaxSpeedMetersPerSecond;
+      ySpeedDelivered = ySpeedCommanded * DriveConstants.kMaxSpeedMetersPerSecond;
+      rotDelivered = m_currentRotation * DriveConstants.kMaxAngularSpeed;
   
       var swerveModuleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(
           fieldRelative
@@ -267,6 +312,17 @@ public class DriveSubsystem extends SubsystemBase {
       }
 
     }
+  }
+
+  public void driveRobotRelative(ChassisSpeeds speeds){
+
+    SwerveModuleState[] moduleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(speeds);
+
+    m_frontLeft.setDesiredState(moduleStates[0]);
+    m_frontRight.setDesiredState(moduleStates[1]);
+    m_rearLeft.setDesiredState(moduleStates[2]);
+    m_rearRight.setDesiredState(moduleStates[3]);
+
   }
 
     /**
