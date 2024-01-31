@@ -10,6 +10,7 @@ import frc.robot.commands.ExampleCommand;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.ExampleSubsystem;
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
@@ -30,7 +31,10 @@ public class RobotContainer {
   private final DriveSubsystem m_DriveSubsystem = new DriveSubsystem();
 
   private final CommandJoystick m_driverController1 = new CommandJoystick(ControlConstants.kControllerPort1); 
-  private final CommandJoystick m_driverController2 = new CommandJoystick(ControlConstants.kControllerPort2); 
+  private final CommandJoystick m_driverController2 = new CommandJoystick(ControlConstants.kControllerPort2);
+
+  private SlewRateLimiter slewY = new SlewRateLimiter(2);
+  private SlewRateLimiter slewX = new SlewRateLimiter(2);
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -40,9 +44,9 @@ public class RobotContainer {
     m_DriveSubsystem.setDefaultCommand(
       new RunCommand(
         () -> m_DriveSubsystem.drive(
-          MathUtil.applyDeadband(-0.5*squareInput(m_driverController1.getRawAxis(Constants.ControlConstants.kLeftYAxis)) , 0.15),
-          MathUtil.applyDeadband(-0.5*squareInput(m_driverController1.getRawAxis(Constants.ControlConstants.kLeftXAxis)) , 0.15),
-          MathUtil.applyDeadband(-0.5*squareInput(m_driverController1.getRawAxis(Constants.ControlConstants.kRightXAxis)), 0.15),
+          -0.5*slewY.calculate(MathUtil.applyDeadband(m_driverController1.getRawAxis(Constants.ControlConstants.kLeftYAxis), 0.15)) ,
+          -0.5*slewX.calculate(MathUtil.applyDeadband(m_driverController1.getRawAxis(Constants.ControlConstants.kLeftXAxis), 0.15)) ,
+          -0.5*(MathUtil.applyDeadband(m_driverController1.getRawAxis(Constants.ControlConstants.kRightXAxis), 0.15)),
           true, true, true), m_DriveSubsystem));
   }
 
@@ -63,11 +67,20 @@ public class RobotContainer {
     // Schedule `exampleMethodCommand` when the Xbox controller's B button is pressed,
     // cancelling on release.
     Trigger xButton = m_driverController1.button(ControlConstants.kXButton);
+    Trigger rBumper = m_driverController1.button(ControlConstants.kRightBumper);
 
     xButton.whileTrue(
       new RunCommand(
         () -> m_DriveSubsystem.setX(), 
         m_DriveSubsystem));
+
+    rBumper.whileTrue(
+      new RunCommand(
+        () -> m_DriveSubsystem.drive(
+          -slewY.calculate(MathUtil.applyDeadband(m_driverController1.getRawAxis(Constants.ControlConstants.kLeftYAxis), 0.15)) ,
+          -slewX.calculate(MathUtil.applyDeadband(m_driverController1.getRawAxis(Constants.ControlConstants.kLeftXAxis), 0.15)) ,
+          -(MathUtil.applyDeadband(m_driverController1.getRawAxis(Constants.ControlConstants.kRightXAxis), 0.15)),
+          true, true, true), m_DriveSubsystem));
   }
 
   /**
