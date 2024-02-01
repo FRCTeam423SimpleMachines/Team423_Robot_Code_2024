@@ -24,6 +24,7 @@ import edu.wpi.first.networktables.GenericEntry;
 import edu.wpi.first.util.WPIUtilJNI;
 import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.SPI;
 import frc.robot.SwerveUtils;
@@ -68,6 +69,7 @@ public class DriveSubsystem extends SubsystemBase {
   private double m_currentRotation = 0.0;
   private double m_currentTranslationDir = 0.0;
   private double m_currentTranslationMag = 0.0;
+  private double m_counter = 0.0;
 
   private SlewRateLimiter m_magLimiter = new SlewRateLimiter(DriveConstants.kMagnitudeSlewRate);
   private SlewRateLimiter m_rotLimiter = new SlewRateLimiter(DriveConstants.kRotationalSlewRate);
@@ -94,14 +96,16 @@ public class DriveSubsystem extends SubsystemBase {
     GenericEntry poseAngle = Shuffleboard.getTab("Drive").add("Pose Angle", getHeading()).getEntry();
     GenericEntry frontLeftPos = Shuffleboard.getTab("Drive").add("Front Left", m_frontLeft.getPosition().angle.getDegrees()).getEntry();
     GenericEntry yaw = Shuffleboard.getTab("Drive").add("Yaw", m_gyro.getYaw()).getEntry();
-    GenericEntry pitch = Shuffleboard.getTab("Drive").add("Pitch Angle", m_gyro.getPitch()).getEntry();   
+    GenericEntry pitch = Shuffleboard.getTab("Drive").add("Pitch Angle", m_gyro.getPitch()).getEntry();
+    GenericEntry poseX =  Shuffleboard.getTab("Drive").add("Pose X", m_odometry.getPoseMeters().getX()).getEntry();
+    GenericEntry poseY =  Shuffleboard.getTab("Drive").add("Pose Y", m_odometry.getPoseMeters().getY()).getEntry();
+    GenericEntry poseRotation =  Shuffleboard.getTab("Drive").add("Pose Rotation", m_odometry.getPoseMeters().getRotation().getDegrees()).getEntry();
     
+    //GenericEntry counter =  Shuffleboard.getTab("Drive").add("Counter", m_counter).getEntry();
       
 
   /** Creates a new DriveSubsystem. */
   public DriveSubsystem() {
-    Shuffleboard.getTab("Drivebase").add("Drive/Gyro Angle", -m_gyro.getAngle()).getEntry();
-    Shuffleboard.getTab("Drivebase").add("Drive/Pose Angle", getHeading()).getEntry();
 
     AutoBuilder.configureHolonomic(
       this::getPose, // Robot pose supplier
@@ -151,7 +155,10 @@ public class DriveSubsystem extends SubsystemBase {
     poseAngle.setDouble(getHeading());
     frontLeftPos.setDouble(m_frontLeft.getPosition().angle.getDegrees());
     yaw.setDouble(m_gyro.getYaw());
-    pitch.setDouble(m_gyro.getPitch());  
+    pitch.setDouble(m_gyro.getPitch()); 
+    
+    SmartDashboard.putNumber("position x", m_odometry.getPoseMeters().getX());
+    SmartDashboard.putNumber("position y", m_odometry.getPoseMeters().getY());
     
   }
 
@@ -186,9 +193,9 @@ public class DriveSubsystem extends SubsystemBase {
   public ChassisSpeeds getRobotRelativeSpeeds() {
      
     SwerveModuleState frontLeftState = m_frontLeft.getState();
-    SwerveModuleState frontRightState = m_frontLeft.getState();
-    SwerveModuleState backLeftState = m_frontLeft.getState();
-    SwerveModuleState backRightState = m_frontLeft.getState();
+    SwerveModuleState frontRightState = m_frontRight.getState();
+    SwerveModuleState backLeftState = m_rearLeft.getState();
+    SwerveModuleState backRightState = m_rearRight.getState();
 
     return DriveConstants.kDriveKinematics.toChassisSpeeds(frontLeftState, frontRightState, backLeftState, backRightState);
   }
@@ -213,6 +220,8 @@ public class DriveSubsystem extends SubsystemBase {
    * @param gyroStability Whether or not to use the gyrostabilization.
    */
   public void drive(double xSpeed, double ySpeed, double rot, boolean fieldRelative, boolean rateLimit, boolean gyroStability) {
+
+    
 
     if (drveSfty) {
         
@@ -317,6 +326,9 @@ public class DriveSubsystem extends SubsystemBase {
   public void driveRobotRelative(ChassisSpeeds speeds){
 
     SwerveModuleState[] moduleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(speeds);
+    
+    //SwerveDriveKinematics.desaturateWheelSpeeds(
+     //     moduleStates, DriveConstants.kMaxSpeedMetersPerSecond);
 
     m_frontLeft.setDesiredState(moduleStates[0]);
     m_frontRight.setDesiredState(moduleStates[1]);
