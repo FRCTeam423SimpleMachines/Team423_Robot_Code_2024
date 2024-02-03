@@ -15,6 +15,7 @@ import com.pathplanner.lib.auto.AutoBuilder;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.SlewRateLimiter;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -58,7 +59,7 @@ public class RobotContainer {
           -0.5*slewY.calculate(MathUtil.applyDeadband(m_driverController1.getRawAxis(Constants.ControlConstants.kLeftYAxis), 0.15)) ,
           -0.5*slewX.calculate(MathUtil.applyDeadband(m_driverController1.getRawAxis(Constants.ControlConstants.kLeftXAxis), 0.15)) ,
           -0.5*(MathUtil.applyDeadband(m_driverController1.getRawAxis(Constants.ControlConstants.kRightXAxis), 0.15)),
-          true, true, true), m_DriveSubsystem));
+          true, true), m_DriveSubsystem));
   }
 
   /**
@@ -77,21 +78,27 @@ public class RobotContainer {
 
     // Schedule `exampleMethodCommand` when the Xbox controller's B button is pressed,
     // cancelling on release.
-    Trigger xButton = m_driverController1.button(ControlConstants.kXButton);
-    Trigger rBumper = m_driverController1.button(ControlConstants.kRightBumper);
+    Trigger xButton1 = m_driverController1.button(ControlConstants.kXButton);
+    Trigger rBumper1 = m_driverController1.button(ControlConstants.kRightBumper);
+    Trigger yButton1 = m_driverController1.button(ControlConstants.kYButton);
 
-    xButton.whileTrue(
+    xButton1.whileTrue(
       new RunCommand(
         () -> m_DriveSubsystem.setX(), 
         m_DriveSubsystem));
 
-    rBumper.whileTrue(
+    yButton1.whileTrue(
+      new RunCommand(
+        () -> m_DriveSubsystem.resetDrive(),
+        m_DriveSubsystem));
+
+    rBumper1.whileTrue(
       new RunCommand(
         () -> m_DriveSubsystem.drive(
           -slewY.calculate(MathUtil.applyDeadband(m_driverController1.getRawAxis(Constants.ControlConstants.kLeftYAxis), 0.15)) ,
           -slewX.calculate(MathUtil.applyDeadband(m_driverController1.getRawAxis(Constants.ControlConstants.kLeftXAxis), 0.15)) ,
           -(MathUtil.applyDeadband(m_driverController1.getRawAxis(Constants.ControlConstants.kRightXAxis), 0.15)),
-          true, true, true), m_DriveSubsystem));
+          true, true), m_DriveSubsystem));
   }
 
   /**

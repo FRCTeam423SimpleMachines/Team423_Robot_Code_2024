@@ -155,10 +155,10 @@ public class DriveSubsystem extends SubsystemBase {
     poseAngle.setDouble(getHeading());
     frontLeftPos.setDouble(m_frontLeft.getPosition().angle.getDegrees());
     yaw.setDouble(m_gyro.getYaw());
-    pitch.setDouble(m_gyro.getPitch()); 
-    
-    SmartDashboard.putNumber("position x", m_odometry.getPoseMeters().getX());
-    SmartDashboard.putNumber("position y", m_odometry.getPoseMeters().getY());
+    pitch.setDouble(m_gyro.getPitch());
+    poseX.setDouble(m_odometry.getPoseMeters().getX());
+    poseY.setDouble(m_odometry.getPoseMeters().getY()); 
+    poseRotation.setDouble(m_odometry.getPoseMeters().getRotation().getDegrees());
     
   }
 
@@ -190,6 +190,11 @@ public class DriveSubsystem extends SubsystemBase {
     
   }
 
+  public void resetDrive() {
+    resetGyro();
+    resetPose(new Pose2d());
+  }
+
   public ChassisSpeeds getRobotRelativeSpeeds() {
      
     SwerveModuleState frontLeftState = m_frontLeft.getState();
@@ -219,7 +224,7 @@ public class DriveSubsystem extends SubsystemBase {
    *                      field.
    * @param gyroStability Whether or not to use the gyrostabilization.
    */
-  public void drive(double xSpeed, double ySpeed, double rot, boolean fieldRelative, boolean rateLimit, boolean gyroStability) {
+  public void drive(double xSpeed, double ySpeed, double rot, boolean fieldRelative, boolean rateLimit) {
 
     
 
@@ -289,16 +294,6 @@ public class DriveSubsystem extends SubsystemBase {
       }
       
       rotatingBuffer++;
-
-      if (gyroStability == true){
-
-        if (-m_gyro.getAngle() > (5 + robotAngle)){
-          m_currentRotation += -0.1;
-        } else if (-m_gyro.getAngle() < (robotAngle - 5)){
-          m_currentRotation += 0.1;
-        }
-
-      }
   
       // Convert the commanded speeds into the correct units for the drivetrain
       xSpeedDelivered = xSpeedCommanded * DriveConstants.kMaxSpeedMetersPerSecond;
@@ -335,19 +330,6 @@ public class DriveSubsystem extends SubsystemBase {
     m_rearLeft.setDesiredState(moduleStates[2]);
     m_rearRight.setDesiredState(moduleStates[3]);
 
-  }
-
-    /**
-   * Method to drive the robot using joystick info.
-   *
-   * @param xSpeed        Speed of the robot in the x direction (forward).
-   * @param ySpeed        Speed of the robot in the y direction (sideways).
-   * @param rot           Angular rate of the robot.
-   * @param fieldRelative Whether the provided x and y speeds are relative to the
-   *                      field.
-   */
-  public void drive(double xSpeed, double ySpeed, double rot, boolean fieldRelative, boolean rateLimit) {
-      drive(xSpeed, ySpeed, rot, fieldRelative, rateLimit, false);
   }
 
   /**
