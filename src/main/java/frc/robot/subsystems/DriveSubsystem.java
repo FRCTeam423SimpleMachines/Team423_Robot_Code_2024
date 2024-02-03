@@ -5,11 +5,16 @@
 package frc.robot.subsystems;
 
 import com.kauailabs.navx.frc.AHRS;
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
+import com.pathplanner.lib.util.PIDConstants;
+import com.pathplanner.lib.util.ReplanningConfig;
 
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.kinematics.Kinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -19,6 +24,8 @@ import edu.wpi.first.networktables.GenericEntry;
 import edu.wpi.first.util.WPIUtilJNI;
 import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.SPI;
 import frc.robot.SwerveUtils;
 import frc.robot.Constants.DriveConstants;
@@ -54,11 +61,15 @@ public class DriveSubsystem extends SubsystemBase {
   private double rotatingBuffer = 0;
   private boolean rotating = false;
 
+  private double xSpeedDelivered; 
+  private double ySpeedDelivered; 
+  private double rotDelivered;
   
   // Slew rate filter variables for controlling lateral acceleration
   private double m_currentRotation = 0.0;
   private double m_currentTranslationDir = 0.0;
   private double m_currentTranslationMag = 0.0;
+  private double m_counter = 0.0;
 
   private SlewRateLimiter m_magLimiter = new SlewRateLimiter(DriveConstants.kMagnitudeSlewRate);
   private SlewRateLimiter m_rotLimiter = new SlewRateLimiter(DriveConstants.kRotationalSlewRate);
@@ -85,14 +96,42 @@ public class DriveSubsystem extends SubsystemBase {
     GenericEntry poseAngle = Shuffleboard.getTab("Drive").add("Pose Angle", getHeading()).getEntry();
     GenericEntry frontLeftPos = Shuffleboard.getTab("Drive").add("Front Left", m_frontLeft.getPosition().angle.getDegrees()).getEntry();
     GenericEntry yaw = Shuffleboard.getTab("Drive").add("Yaw", m_gyro.getYaw()).getEntry();
-    GenericEntry pitch = Shuffleboard.getTab("Drive").add("Pitch Angle", m_gyro.getPitch()).getEntry();   
+    GenericEntry pitch = Shuffleboard.getTab("Drive").add("Pitch Angle", m_gyro.getPitch()).getEntry();
+    GenericEntry poseX =  Shuffleboard.getTab("Drive").add("Pose X", m_odometry.getPoseMeters().getX()).getEntry();
+    GenericEntry poseY =  Shuffleboard.getTab("Drive").add("Pose Y", m_odometry.getPoseMeters().getY()).getEntry();
+    GenericEntry poseRotation =  Shuffleboard.getTab("Drive").add("Pose Rotation", m_odometry.getPoseMeters().getRotation().getDegrees()).getEntry();
     
+    //GenericEntry counter =  Shuffleboard.getTab("Drive").add("Counter", m_counter).getEntry();
       
 
   /** Creates a new DriveSubsystem. */
   public DriveSubsystem() {
-    Shuffleboard.getTab("Drivebase").add("Drive/Gyro Angle", -m_gyro.getAngle()).getEntry();
-    Shuffleboard.getTab("Drivebase").add("Drive/Pose Angle", getHeading()).getEntry();
+
+    AutoBuilder.configureHolonomic(
+      this::getPose, // Robot pose supplier
+      this::resetPose, // Method to reset odometry (will be called if your auto has a starting pose)
+      this::getRobotRelativeSpeeds, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
+      this::driveRobotRelative, // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds
+      new HolonomicPathFollowerConfig( // HolonomicPathFollowerConfig, this should likely live in your Constants class
+        new PIDConstants(5.0, 0.0, 0.0), // Translation PID constants
+        new PIDConstants(5.0, 0.0, 0.0), // Rotation PID constants
+        4.5, // Max module speed, in m/s
+        0.4, // Drive base radius in meters. Distance from robot center to furthest module.
+        new ReplanningConfig() // Default path replanning config. See the API for the options here
+      ),
+      () -> {
+        // Boolean supplier that controls when the path will be mirrored for the red alliance
+        // This will flip the path being followed to the red side of the field.
+        // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
+
+        var alliance = DriverStation.getAlliance();
+        if (alliance.isPresent()) {
+          return alliance.get() == DriverStation.Alliance.Red;
+        }
+        return false;
+      },
+      this // Reference to this subsystem to set requirements
+    );
   }
 
   @Override
@@ -110,13 +149,16 @@ public class DriveSubsystem extends SubsystemBase {
             m_rearRight.getPosition()
         });
 
-        drveSfty = driveSafety.getBoolean(true);
+    drveSfty = driveSafety.getBoolean(true);
     
-      gyroAngle.setDouble(-m_gyro.getAngle());
-      poseAngle.setDouble(getHeading());
-      frontLeftPos.setDouble(m_frontLeft.getPosition().angle.getDegrees());
-      yaw.setDouble(m_gyro.getYaw());
-      pitch.setDouble(m_gyro.getPitch());  
+    gyroAngle.setDouble(-m_gyro.getAngle());
+    poseAngle.setDouble(getHeading());
+    frontLeftPos.setDouble(m_frontLeft.getPosition().angle.getDegrees());
+    yaw.setDouble(m_gyro.getYaw());
+    pitch.setDouble(m_gyro.getPitch()); 
+    
+    SmartDashboard.putNumber("position x", m_odometry.getPoseMeters().getX());
+    SmartDashboard.putNumber("position y", m_odometry.getPoseMeters().getY());
     
   }
 
@@ -134,7 +176,7 @@ public class DriveSubsystem extends SubsystemBase {
    *
    * @param pose The pose to which to set the odometry.
    */
-  public void resetOdometry(Pose2d pose) {
+  public void resetPose(Pose2d pose) {
     m_odometry.resetPosition(
         Rotation2d.fromDegrees(-m_gyro.getAngle()),
         new SwerveModulePosition[] {
@@ -146,6 +188,16 @@ public class DriveSubsystem extends SubsystemBase {
         pose);
     m_gyro.reset();
     
+  }
+
+  public ChassisSpeeds getRobotRelativeSpeeds() {
+     
+    SwerveModuleState frontLeftState = m_frontLeft.getState();
+    SwerveModuleState frontRightState = m_frontRight.getState();
+    SwerveModuleState backLeftState = m_rearLeft.getState();
+    SwerveModuleState backRightState = m_rearRight.getState();
+
+    return DriveConstants.kDriveKinematics.toChassisSpeeds(frontLeftState, frontRightState, backLeftState, backRightState);
   }
 
   /**
@@ -168,6 +220,8 @@ public class DriveSubsystem extends SubsystemBase {
    * @param gyroStability Whether or not to use the gyrostabilization.
    */
   public void drive(double xSpeed, double ySpeed, double rot, boolean fieldRelative, boolean rateLimit, boolean gyroStability) {
+
+    
 
     if (drveSfty) {
         
@@ -247,9 +301,9 @@ public class DriveSubsystem extends SubsystemBase {
       }
   
       // Convert the commanded speeds into the correct units for the drivetrain
-      double xSpeedDelivered = xSpeedCommanded * DriveConstants.kMaxSpeedMetersPerSecond;
-      double ySpeedDelivered = ySpeedCommanded * DriveConstants.kMaxSpeedMetersPerSecond;
-      double rotDelivered = m_currentRotation * DriveConstants.kMaxAngularSpeed;
+      xSpeedDelivered = xSpeedCommanded * DriveConstants.kMaxSpeedMetersPerSecond;
+      ySpeedDelivered = ySpeedCommanded * DriveConstants.kMaxSpeedMetersPerSecond;
+      rotDelivered = m_currentRotation * DriveConstants.kMaxAngularSpeed;
   
       var swerveModuleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(
           fieldRelative
@@ -267,6 +321,20 @@ public class DriveSubsystem extends SubsystemBase {
       }
 
     }
+  }
+
+  public void driveRobotRelative(ChassisSpeeds speeds){
+
+    SwerveModuleState[] moduleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(speeds);
+    
+    //SwerveDriveKinematics.desaturateWheelSpeeds(
+     //     moduleStates, DriveConstants.kMaxSpeedMetersPerSecond);
+
+    m_frontLeft.setDesiredState(moduleStates[0]);
+    m_frontRight.setDesiredState(moduleStates[1]);
+    m_rearLeft.setDesiredState(moduleStates[2]);
+    m_rearRight.setDesiredState(moduleStates[3]);
+
   }
 
     /**
