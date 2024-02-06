@@ -10,6 +10,7 @@ import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.PIDConstants;
 import com.pathplanner.lib.util.ReplanningConfig;
 
+import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.estimator.PoseEstimator;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
@@ -22,6 +23,8 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.networktables.GenericEntry;
 
 import edu.wpi.first.util.WPIUtilJNI;
@@ -90,8 +93,8 @@ public class DriveSubsystem extends SubsystemBase {
           m_rearLeft.getPosition(),
           m_rearRight.getPosition()},
           new Pose2d()
-          ,VecBuilder.fill(0.01, 0.01, 0.01),
-          VecBuilder.fill(0.9, 0.9, 0.9) 
+          // ,VecBuilder.fill(0.01, 0.01, 0.01),
+          // VecBuilder.fill(0.9, 0.9, 0.9) 
   );
 
     private boolean drveSfty = true;
@@ -138,6 +141,8 @@ public class DriveSubsystem extends SubsystemBase {
       },
       this // Reference to this subsystem to set requirements
     );
+
+    
   }
 
   @Override
@@ -395,4 +400,13 @@ public class DriveSubsystem extends SubsystemBase {
   public double getTurnRate() {
     return m_gyro.getRate() * (DriveConstants.kGyroReversed ? -1.0 : 1.0);
   }
+
+  public void addVisionPoseEstimate(Pose2d pose, double timestamp) {
+      m_odometry.addVisionMeasurement(pose, timestamp);
+    }
+
+    public void addVisionPoseEstimate(Pose2d pose, double timestamp, Matrix<N3, N1> stdDevs) {
+      m_odometry.addVisionMeasurement(pose, timestamp, stdDevs);
+    }
+
 }
