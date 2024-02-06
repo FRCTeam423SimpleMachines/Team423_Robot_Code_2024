@@ -10,6 +10,10 @@ import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.PIDConstants;
 import com.pathplanner.lib.util.ReplanningConfig;
 
+import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.estimator.PoseEstimator;
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -19,6 +23,8 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.networktables.GenericEntry;
 
 import edu.wpi.first.util.WPIUtilJNI;
@@ -75,18 +81,21 @@ public class DriveSubsystem extends SubsystemBase {
   private SlewRateLimiter m_rotLimiter = new SlewRateLimiter(DriveConstants.kRotationalSlewRate);
   private double m_prevTime = WPIUtilJNI.now() * 1e-6;
 
-
+  
 
   // Odometry class for tracking robot pose
-  SwerveDriveOdometry m_odometry = new SwerveDriveOdometry(
+  SwerveDrivePoseEstimator m_odometry = new SwerveDrivePoseEstimator(
       DriveConstants.kDriveKinematics,
       Rotation2d.fromDegrees(-m_gyro.getAngle()),
       new SwerveModulePosition[] {
           m_frontLeft.getPosition(),
           m_frontRight.getPosition(),
           m_rearLeft.getPosition(),
-          m_rearRight.getPosition()
-      });
+          m_rearRight.getPosition()},
+          new Pose2d()
+          // ,VecBuilder.fill(0.01, 0.01, 0.01),
+          // VecBuilder.fill(0.9, 0.9, 0.9) 
+  );
 
     private boolean drveSfty = true;
 
@@ -97,9 +106,9 @@ public class DriveSubsystem extends SubsystemBase {
     GenericEntry frontLeftPos = Shuffleboard.getTab("Drive").add("Front Left", m_frontLeft.getPosition().angle.getDegrees()).getEntry();
     GenericEntry yaw = Shuffleboard.getTab("Drive").add("Yaw", m_gyro.getYaw()).getEntry();
     GenericEntry pitch = Shuffleboard.getTab("Drive").add("Pitch Angle", m_gyro.getPitch()).getEntry();
-    GenericEntry poseX =  Shuffleboard.getTab("Drive").add("Pose X", m_odometry.getPoseMeters().getX()).getEntry();
-    GenericEntry poseY =  Shuffleboard.getTab("Drive").add("Pose Y", m_odometry.getPoseMeters().getY()).getEntry();
-    GenericEntry poseRotation =  Shuffleboard.getTab("Drive").add("Pose Rotation", m_odometry.getPoseMeters().getRotation().getDegrees()).getEntry();
+    // GenericEntry poseX = Shuffleboard.getTab("Drive").add("Pose X", m_odometry.getPoseMeters().getX()).getEntry();
+    // GenericEntry poseY = Shuffleboard.getTab("Drive").add("Pose Y", m_odometry.getPoseMeters().getY()).getEntry();
+    // GenericEntry poseRotation =  Shuffleboard.getTab("Drive").add("Pose Rotation", m_odometry.getPoseMeters().getRotation().getDegrees()).getEntry();
     
     //GenericEntry counter =  Shuffleboard.getTab("Drive").add("Counter", m_counter).getEntry();
       
@@ -132,6 +141,8 @@ public class DriveSubsystem extends SubsystemBase {
       },
       this // Reference to this subsystem to set requirements
     );
+
+    
   }
 
   @Override
@@ -155,10 +166,17 @@ public class DriveSubsystem extends SubsystemBase {
     poseAngle.setDouble(getHeading());
     frontLeftPos.setDouble(m_frontLeft.getPosition().angle.getDegrees());
     yaw.setDouble(m_gyro.getYaw());
+
     pitch.setDouble(m_gyro.getPitch());
     poseX.setDouble(m_odometry.getPoseMeters().getX());
     poseY.setDouble(m_odometry.getPoseMeters().getY()); 
     poseRotation.setDouble(m_odometry.getPoseMeters().getRotation().getDegrees());
+
+    pitch.setDouble(m_gyro.getPitch()); 
+    
+    SmartDashboard.putNumber("position x", m_odometry.getEstimatedPosition().getX());
+    SmartDashboard.putNumber("position y", m_odometry.getEstimatedPosition().getY());
+
     
   }
 
@@ -168,7 +186,7 @@ public class DriveSubsystem extends SubsystemBase {
    * @return The pose.
    */
   public Pose2d getPose() {
-    return m_odometry.getPoseMeters();
+    return m_odometry.getEstimatedPosition();
   }
 
   /**
@@ -394,4 +412,13 @@ public class DriveSubsystem extends SubsystemBase {
   public double getTurnRate() {
     return m_gyro.getRate() * (DriveConstants.kGyroReversed ? -1.0 : 1.0);
   }
+
+  public void addVisionPoseEstimate(Pose2d pose, double timestamp) {
+      m_odometry.addVisionMeasurement(pose, timestamp);
+    }
+
+    public void addVisionPoseEstimate(Pose2d pose, double timestamp, Matrix<N3, N1> stdDevs) {
+      m_odometry.addVisionMeasurement(pose, timestamp, stdDevs);
+    }
+
 }

@@ -8,8 +8,11 @@ package frc.robot;
 import frc.robot.commands.Autos;
 import frc.robot.commands.DoNothingAuton;
 import frc.robot.commands.ExampleCommand;
+import frc.robot.commands.visionAim.TagAlign;
+import frc.robot.commands.visionAim.TagShift;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.ExampleSubsystem;
+import frc.robot.subsystems.VisionSubsystem;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 
@@ -36,6 +39,7 @@ public class RobotContainer {
   // The robot's subsystems and commands are defined here...
   private final ExampleSubsystem m_exampleSubsystem = new ExampleSubsystem();
   private final DriveSubsystem m_DriveSubsystem = new DriveSubsystem();
+  private final VisionSubsystem m_VisionSubsystem = new VisionSubsystem(m_DriveSubsystem);
 
   private final CommandJoystick m_driverController1 = new CommandJoystick(ControlConstants.kControllerPort1); 
   private final CommandJoystick m_driverController2 = new CommandJoystick(ControlConstants.kControllerPort2); 
@@ -80,17 +84,24 @@ public class RobotContainer {
     // cancelling on release.
     Trigger xButton1 = m_driverController1.button(ControlConstants.kXButton);
     Trigger rBumper1 = m_driverController1.button(ControlConstants.kRightBumper);
+
     Trigger yButton1 = m_driverController1.button(ControlConstants.kYButton);
+
+    Trigger bButton2 = m_driverController2.button(ControlConstants.kBButton);
+    Trigger xButton2 = m_driverController2.button(ControlConstants.kXButton);
+
 
     xButton1.whileTrue(
       new RunCommand(
         () -> m_DriveSubsystem.setX(), 
         m_DriveSubsystem));
 
+
     yButton1.whileTrue(
       new RunCommand(
         () -> m_DriveSubsystem.resetDrive(),
         m_DriveSubsystem));
+
 
     rBumper1.whileTrue(
       new RunCommand(
@@ -99,7 +110,17 @@ public class RobotContainer {
           -slewX.calculate(MathUtil.applyDeadband(m_driverController1.getRawAxis(Constants.ControlConstants.kLeftXAxis), 0.15)) ,
           -(MathUtil.applyDeadband(m_driverController1.getRawAxis(Constants.ControlConstants.kRightXAxis), 0.15)),
           true, true), m_DriveSubsystem));
-  }
+
+  
+
+
+    bButton2.onTrue(
+      new TagAlign(m_VisionSubsystem, m_DriveSubsystem));  
+      
+    xButton2.onTrue(
+      new TagShift(m_VisionSubsystem, m_DriveSubsystem));
+    }
+
 
   /**
    * Use this to pass the autonomous command to the main {@link Robot} class.
