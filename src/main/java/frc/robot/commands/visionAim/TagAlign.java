@@ -4,6 +4,7 @@ package frc.robot.commands.visionAim;
 import java.util.function.BooleanSupplier;
 
 import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.networktables.GenericEntry;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
@@ -54,8 +55,8 @@ public class TagAlign extends Command{
         );
         double angularSpeed = angleController.getSetpoint().velocity + angularCorrection;
         //double angularSpeed = angleController.calculate(tx);
-        m_DriveSubsystem.drive(0, 0, angularSpeed, false, false);
-        }
+        m_DriveSubsystem.driveRobotRelative( new ChassisSpeeds(0.0, 0.0, angularSpeed));
+    }
 
 
     @Override

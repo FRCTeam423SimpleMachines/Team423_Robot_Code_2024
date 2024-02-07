@@ -106,9 +106,9 @@ public class DriveSubsystem extends SubsystemBase {
     GenericEntry frontLeftPos = Shuffleboard.getTab("Drive").add("Front Left", m_frontLeft.getPosition().angle.getDegrees()).getEntry();
     GenericEntry yaw = Shuffleboard.getTab("Drive").add("Yaw", m_gyro.getYaw()).getEntry();
     GenericEntry pitch = Shuffleboard.getTab("Drive").add("Pitch Angle", m_gyro.getPitch()).getEntry();
-    // GenericEntry poseX = Shuffleboard.getTab("Drive").add("Pose X", m_odometry.getPoseMeters().getX()).getEntry();
-    // GenericEntry poseY = Shuffleboard.getTab("Drive").add("Pose Y", m_odometry.getPoseMeters().getY()).getEntry();
-    // GenericEntry poseRotation =  Shuffleboard.getTab("Drive").add("Pose Rotation", m_odometry.getPoseMeters().getRotation().getDegrees()).getEntry();
+    GenericEntry poseX = Shuffleboard.getTab("Drive").add("Pose X", m_odometry.getEstimatedPosition().getX()).getEntry();
+    GenericEntry poseY = Shuffleboard.getTab("Drive").add("Pose Y", m_odometry.getEstimatedPosition().getY()).getEntry();
+    GenericEntry poseRotation =  Shuffleboard.getTab("Drive").add("Pose Rotation", m_odometry.getEstimatedPosition().getRotation().getDegrees()).getEntry();
     
     //GenericEntry counter =  Shuffleboard.getTab("Drive").add("Counter", m_counter).getEntry();
       
@@ -168,9 +168,9 @@ public class DriveSubsystem extends SubsystemBase {
     yaw.setDouble(m_gyro.getYaw());
 
     pitch.setDouble(m_gyro.getPitch());
-    poseX.setDouble(m_odometry.getPoseMeters().getX());
-    poseY.setDouble(m_odometry.getPoseMeters().getY()); 
-    poseRotation.setDouble(m_odometry.getPoseMeters().getRotation().getDegrees());
+    poseX.setDouble(m_odometry.getEstimatedPosition().getX());
+    poseY.setDouble(m_odometry.getEstimatedPosition().getY()); 
+    poseRotation.setDouble(m_odometry.getEstimatedPosition().getRotation().getDegrees());
 
     pitch.setDouble(m_gyro.getPitch()); 
     
