@@ -1,66 +1,59 @@
 package frc.robot.commands.visionAim;
-
-
-import java.util.function.BooleanSupplier;
-
 import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import edu.wpi.first.networktables.GenericEntry;
-import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.LimelightHelpers;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.VisionSubsystem;
 
+import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
 
-public class TagAlign extends Command{
-    
-    private static final TrapezoidProfile.Constraints angleConstraints = new TrapezoidProfile.Constraints(4, 4);
-    private ProfiledPIDController angleController = new ProfiledPIDController(0.1, 0, 0.0, angleConstraints);
+public class TagAlign extends Command {
+    private static final TrapezoidProfile.Constraints omegaConstraints = new TrapezoidProfile.Constraints(8, 8);
+    private final ProfiledPIDController omegaController = new ProfiledPIDController(8, 0, 0, omegaConstraints);
 
+    private final DriveSubsystem m_DriveSubsystem;
+    private final VisionSubsystem m_VisionSubsystem;
     
-    double tx;
-    double ta;
-    
-
-    VisionSubsystem m_VisionSubsystem;
-    DriveSubsystem m_DriveSubsystem;
-    
-    public TagAlign(VisionSubsystem vision, DriveSubsystem drive){
-        m_VisionSubsystem = vision;
+    /**
+     * @param drive
+     * @param vision
+     */
+    public TagAlign(VisionSubsystem vision, DriveSubsystem drive) {
         m_DriveSubsystem = drive;
-        addRequirements(vision, drive);
+        m_VisionSubsystem = vision;
+
+        omegaController.setTolerance(Units.degreesToRadians(0.5));
+        omegaController.enableContinuousInput(-Math.PI, Math.PI);
+
+        addRequirements(m_DriveSubsystem);
     }
 
     @Override
     public void initialize() {
-        angleController.setGoal(0);
-       /*  angleController.enableContinuousInput(-180, 180);
-        angleController.setTolerance(3);*/
-        angleController.enableContinuousInput(-Math.PI, Math.PI);
-        angleController.setTolerance(Math.toRadians(3));
-    } 
+        Pose2d robotPose = m_DriveSubsystem.getPose();
+        ChassisSpeeds robotVelocity = m_DriveSubsystem.getRobotRelativeSpeeds();
 
-
-    
+        omegaController.reset(robotPose.getRotation().getRadians(), -robotVelocity.omegaRadiansPerSecond);
+    }
 
     @Override
     public void execute() {
-       // tx = m_VisionSubsystem.getVisionTX();
-        double angularCorrection = angleController.calculate(
-          m_DriveSubsystem.getPose().getRotation().getRadians()
-        );
-        double angularSpeed = angleController.getSetpoint().velocity + angularCorrection;
-        //double angularSpeed = angleController.calculate(tx);
-        m_DriveSubsystem.driveRobotRelative( new ChassisSpeeds(0.0, 0.0, angularSpeed));
-    }
+        Pose2d robotPose = m_DriveSubsystem.getPose();
+        Pose2d targetPose = m_VisionSubsystem.getTargetPose();
 
+        Rotation2d targetAngle = targetPose.minus(robotPose).getTranslation().getAngle().rotateBy(Rotation2d.fromDegrees(180));
 
-    @Override
-    public boolean isFinished(){
-        return angleController.atGoal();
+        omegaController.setGoal(robotPose.getRotation().plus(targetAngle).getRadians());
+
+        double omegaSpeed = omegaController.calculate(robotPose.getRotation().getRadians());
+
+        if (omegaController.atGoal()) omegaSpeed = 0;
+
+        m_DriveSubsystem.driveRobotRelative(new ChassisSpeeds(0.0, 0.0, omegaSpeed));
     }
 }
