@@ -17,10 +17,13 @@ import java.util.function.Supplier;
 
 public class TagAlign extends Command {
     private static final TrapezoidProfile.Constraints omegaConstraints = new TrapezoidProfile.Constraints(4, 4);
-    private final ProfiledPIDController omegaController = new ProfiledPIDController(0.8, 0, 0, omegaConstraints);
+    private final ProfiledPIDController omegaController = new ProfiledPIDController(2.6, 0, 0.2, omegaConstraints);
 
     private final DriveSubsystem m_DriveSubsystem;
     private final VisionSubsystem m_VisionSubsystem;
+
+    Pose2d targetPose = null;
+    Rotation2d targetAngle = null;
 
     private GenericEntry targetAngleEntry = Shuffleboard.getTab("Auto").add("Target Angle",0.0).getEntry();
     private GenericEntry goalEntry = Shuffleboard.getTab("Auto").add("Goal",0.0).getEntry();
@@ -34,7 +37,7 @@ public class TagAlign extends Command {
         m_DriveSubsystem = drive;
         m_VisionSubsystem = vision;
 
-        omegaController.setTolerance(Units.degreesToRadians(10));
+        omegaController.setTolerance(Units.degreesToRadians(5));
         omegaController.enableContinuousInput(-Math.PI, Math.PI);
 
         addRequirements(m_DriveSubsystem);
@@ -46,30 +49,29 @@ public class TagAlign extends Command {
         ChassisSpeeds robotVelocity = m_DriveSubsystem.getRobotRelativeSpeeds();
 
         omegaController.reset(robotPose.getRotation().getRadians(), -robotVelocity.omegaRadiansPerSecond);
+        //omegaController.setGoal(0.0);
     }
 
     @Override
     public void execute() {
         Pose2d robotPose = m_DriveSubsystem.getPose();
-        Pose2d targetPose;
-        Rotation2d targetAngle;
-        
+        double omegaSpeed = 0.0;
+       
         if (m_VisionSubsystem.hasTargets()) {
             targetPose = m_VisionSubsystem.getTargetPose(VisionConstants.kTargetOffset);
-            targetAngle = targetPose.minus(robotPose).getTranslation().getAngle();
-            //omegaController.setGoal(robotPose.getRotation().plus(targetAngle).getRadians());
-            omegaController.setGoal(targetAngle.getRadians());
+            omegaController.setGoal(targetPose.getRotation().getRadians());
+            omegaSpeed = omegaController.calculate(robotPose.getRotation().getRadians());   
         }
-
-        double omegaSpeed = omegaController.calculate(robotPose.getRotation().getRadians());
 
         if (omegaController.atGoal()) omegaSpeed = 0;
 
-        m_DriveSubsystem.driveRobotRelative(new ChassisSpeeds(0.0, 0.0, omegaSpeed));
+        m_DriveSubsystem.driveRobotRelative(new ChassisSpeeds(0.0, 0.0, -omegaSpeed));
 
-        // targetAngleEntry.setDouble(targetAngle.getDegrees());
-        // targetPoseEntry.setDouble(targetPose.getRotation().getDegrees());
-        goalEntry.setDouble(Units.radiansToDegrees(omegaController.getGoal().position));
+        if (targetAngle != null && targetPose != null) {
+            targetAngleEntry.setDouble(targetAngle.getDegrees());
+            targetPoseEntry.setDouble(targetPose.getRotation().getDegrees());
+            goalEntry.setDouble(Units.radiansToDegrees(omegaController.getGoal().position));
+        }
     }
 
     @Override

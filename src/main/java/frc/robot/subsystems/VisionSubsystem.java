@@ -43,7 +43,7 @@ public class VisionSubsystem extends SubsystemBase{
         Units.inchesToMeters(5.5), 
         Units.inchesToMeters(-4), 
         Units.inchesToMeters(18),
-        new Rotation3d(0, Units.degreesToRadians(40), Units.degreesToRadians(180))
+        new Rotation3d(0, Units.degreesToRadians(40), Units.degreesToRadians(0))
         );
 
     private PhotonPipelineResult results;
@@ -89,7 +89,7 @@ public class VisionSubsystem extends SubsystemBase{
         PhotonTrackedTarget target = getBestTarget();
 
         if (target != null) {
-            Transform3d cameraToTarget = target.getBestCameraToTarget();
+            Transform3d cameraToTarget = target.getAlternateCameraToTarget();
 
             Optional<Pose3d> tagPose = m_layout.getTagPose(target.getFiducialId());
 
@@ -109,7 +109,13 @@ public class VisionSubsystem extends SubsystemBase{
         
 
         if (target != null) {
-            Transform3d cameraToTarget = target.getBestCameraToTarget();
+            Transform3d cameraToTarget = new Transform3d(target.getAlternateCameraToTarget().getTranslation(), 
+                new Rotation3d(
+                    Units.degreesToRadians(target.getSkew()), 
+                    Units.degreesToRadians(target.getPitch()), 
+                    Units.degreesToRadians(target.getYaw())
+                )
+            );
 
             Transform3d targetOffset = cameraToTarget.plus(offset);
 
@@ -120,9 +126,7 @@ public class VisionSubsystem extends SubsystemBase{
             // WARNING: The following code is scuffed. Please proceed with caution.
             Pose2d newPose = scoringPose.toPose2d();
 
-            Rotation2d newRotation = Rotation2d.fromDegrees(newPose.getRotation().getDegrees());
-
-            Pose2d finalPose = new Pose2d(newPose.getTranslation(), newRotation).plus(
+            Pose2d finalPose = newPose.plus(
                     new Transform2d(
                             ROBOT_TO_CAMERA.getTranslation().toTranslation2d(),
                             ROBOT_TO_CAMERA.getRotation().toRotation2d()));
