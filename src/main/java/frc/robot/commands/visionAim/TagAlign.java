@@ -50,6 +50,11 @@ public class TagAlign extends Command {
 
         omegaController.reset(robotPose.getRotation().getRadians(), -robotVelocity.omegaRadiansPerSecond);
         //omegaController.setGoal(0.0);
+
+        //Stops the robot from getting stuck if it doesn't see an AprilTag
+        if(!m_VisionSubsystem.hasTargets()){
+            super.cancel();
+        }
     }
 
     @Override
