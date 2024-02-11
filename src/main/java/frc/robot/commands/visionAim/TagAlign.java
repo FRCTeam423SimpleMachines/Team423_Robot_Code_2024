@@ -5,6 +5,8 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.networktables.GenericEntry;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.VisionSubsystem;
@@ -18,6 +20,14 @@ public class TagAlign extends Command {
 
     private final DriveSubsystem m_DriveSubsystem;
     private final VisionSubsystem m_VisionSubsystem;
+
+
+
+    
+    
+    
+
+
     
     /**
      * @param drive
@@ -46,14 +56,16 @@ public class TagAlign extends Command {
         Pose2d robotPose = m_DriveSubsystem.getPose();
         Pose2d targetPose = m_VisionSubsystem.getTargetPose();
 
-        Rotation2d targetAngle = targetPose.minus(robotPose).getTranslation().getAngle().rotateBy(Rotation2d.fromDegrees(180));
+        Rotation2d targetAngle = targetPose.getRotation();
 
-        omegaController.setGoal(robotPose.getRotation().plus(targetAngle).getRadians());
-
+        omegaController.setGoal(targetAngle.getRadians());
         double omegaSpeed = omegaController.calculate(robotPose.getRotation().getRadians());
+
+        
 
         if (omegaController.atGoal()) omegaSpeed = 0;
 
         m_DriveSubsystem.driveRobotRelative(new ChassisSpeeds(0.0, 0.0, omegaSpeed));
+        
     }
 }

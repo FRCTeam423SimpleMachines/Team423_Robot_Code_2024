@@ -132,6 +132,8 @@ public class RobotContainer {
     return m_chooser.getSelected();
   }
 
+  
+
   public double squareInput(double x){
     if (x > 0){
       return Math.pow(x, 2);

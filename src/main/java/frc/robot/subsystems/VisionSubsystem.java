@@ -1,5 +1,6 @@
 package frc.robot.subsystems;
 
+import java.io.IOException;
 import java.util.Optional;
 
 import javax.swing.JList.DropLocation;
@@ -10,6 +11,7 @@ import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -28,15 +30,24 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class VisionSubsystem extends SubsystemBase{
 
-     private PhotonCamera m_camera;
+    private PhotonCamera m_camera;
     private AprilTagFieldLayout m_layout;
+    double shuffleVar = 0;
+    double shuffleVar2 = 0;
+    
+
+    GenericEntry goalEntry = Shuffleboard.getTab("Auto").add("Goal", shuffleVar).getEntry();
+    
+    GenericEntry targetAEntry = Shuffleboard.getTab("Auto").add("target angle", shuffleVar2).getEntry();
+
+
 
     private static final Pose3d ROBOT_TO_CAMERA = new Pose3d(
         Units.inchesToMeters(5.5), 
         Units.inchesToMeters(-4), 
         Units.inchesToMeters(18),
         new Rotation3d(0, Units.degreesToRadians(40), Units.degreesToRadians(180))
-        );
+    );
 
     private PhotonPipelineResult results;
     private double m_latestLatency = 0.0;
@@ -51,10 +62,15 @@ public class VisionSubsystem extends SubsystemBase{
         m_DriveSubsystem = drive;
         m_camera = new PhotonCamera("Limelight");
         results = m_camera.getLatestResult(); 
+         try {
+            m_layout = AprilTagFieldLayout.loadFromResource(AprilTagFields.k2023ChargedUp.m_resourceFile);
+        } catch (IOException err) {
+            throw new RuntimeException();
+        }
     }
     
     
-        public PhotonTrackedTarget getBestTarget() {
+    public PhotonTrackedTarget getBestTarget() {
         PhotonPipelineResult result = m_camera.getLatestResult();
 
         m_latestLatency = result.getLatencyMillis() / 1000.;
@@ -79,6 +95,8 @@ public class VisionSubsystem extends SubsystemBase{
             Optional<Pose3d> tagPose = m_layout.getTagPose(target.getFiducialId());
 
             Transform3d camToRobot = new Transform3d();
+            
+            //Probably a problem below but I don't know what 
 
             if (tagPose.isPresent()) {
                 Pose3d robotPose = PhotonUtils.estimateFieldToRobotAprilTag(cameraToTarget, tagPose.get(), camToRobot);
@@ -87,35 +105,38 @@ public class VisionSubsystem extends SubsystemBase{
         }
         return new Pose2d();
     }
+    
+    
+    // public Pose2d getTargetPose() {
+    //     PhotonTrackedTarget target = getBestTarget();
+    //     Pose2d robotPose = m_DriveSubsystem.getPose();
+    //     Transform3d offset = new Transform3d(ROBOT_TO_CAMERA.getTranslation(), ROBOT_TO_CAMERA.getRotation());
 
-    public Pose2d getTargetPose() {
-        PhotonTrackedTarget target = getBestTarget();
-        Pose2d robotPose = m_DriveSubsystem.getPose();
-        Transform3d offset = new Transform3d(ROBOT_TO_CAMERA.getTranslation(), ROBOT_TO_CAMERA.getRotation());
+    //     if (target != null) {
+    //         Transform3d cameraToTarget = target.getBestCameraToTarget();
+    //         targetAEntry.setDouble(Math.toDegrees(cameraToTarget.getRotation().getAngle()));
+    //         Transform3d targetOffset = cameraToTarget.plus(offset);
 
-        if (target != null) {
-            Transform3d cameraToTarget = target.getBestCameraToTarget();
+    //         Pose3d pose = new Pose3d(robotPose);
 
-            Transform3d targetOffset = cameraToTarget.plus(offset);
+    //         Pose3d scoringPose = pose.plus(targetOffset);
 
-            Pose3d pose = new Pose3d(robotPose);
+    //         // WARNING: The following code is scuffed. Please proceed with caution.
+    //         /*Pose2d newPose = scoringPose.toPose2d();
 
-            Pose3d scoringPose = pose.plus(targetOffset);
+    //         Rotation2d newRotation = Rotation2d.fromDegrees(newPose.getRotation().getDegrees() - 180.);
 
-            // WARNING: The following code is scuffed. Please proceed with caution.
-            Pose2d newPose = scoringPose.toPose2d();
+    //         Pose2d finalPose = new Pose2d(newPose.getTranslation(), newRotation).plus(
+    //                 new Transform2d(
+    //                         ROBOT_TO_CAMERA.getTranslation().toTranslation2d(),
+    //                         ROBOT_TO_CAMERA.getRotation().toRotation2d()));
+    //         return finalPose;
+    //         */
+    //         return scoringPose.toPose2d();
+    //     }
 
-            Rotation2d newRotation = Rotation2d.fromDegrees(newPose.getRotation().getDegrees() - 180.);
-
-            Pose2d finalPose = new Pose2d(newPose.getTranslation(), newRotation).plus(
-                    new Transform2d(
-                            ROBOT_TO_CAMERA.getTranslation().toTranslation2d(),
-                            ROBOT_TO_CAMERA.getRotation().toRotation2d()));
-            return finalPose;
-        }
-
-        return robotPose;
-    }
+    //     return robotPose;
+    // }
 
     public double getLatestLatency() {
         return m_latestLatency;
@@ -125,8 +146,10 @@ public class VisionSubsystem extends SubsystemBase{
 
     @Override
     public void periodic() {
-        results = m_camera.getLatestResult(); 
         
+        results = m_camera.getLatestResult();
+       // goalEntry.setDouble(getTargetPose().getRotation().getDegrees());
+       
         if (results.hasTargets()) {
             m_DriveSubsystem.addVisionPoseEstimate(getLatestEstimatedRobotPose(), Timer.getFPGATimestamp());
         }
