@@ -8,6 +8,7 @@ package frc.robot;
 import frc.robot.commands.Autos;
 import frc.robot.commands.DoNothingAuton;
 import frc.robot.commands.ExampleCommand;
+import frc.robot.commands.visionAim.AimAtSpeaker;
 import frc.robot.commands.visionAim.TagAlign;
 import frc.robot.commands.visionAim.TagShift;
 import frc.robot.subsystems.DriveSubsystem;
@@ -84,6 +85,7 @@ public class RobotContainer {
     // cancelling on release.
     Trigger xButton1 = m_driverController1.button(ControlConstants.kXButton);
     Trigger rBumper1 = m_driverController1.button(ControlConstants.kRightBumper);
+    Trigger aButton1 = m_driverController1.button(ControlConstants.kAButton);
 
     Trigger yButton1 = m_driverController1.button(ControlConstants.kYButton);
 
@@ -102,6 +104,8 @@ public class RobotContainer {
         () -> m_DriveSubsystem.resetDrive(),
         m_DriveSubsystem));
 
+    aButton1.onTrue(
+      new AimAtSpeaker(m_VisionSubsystem, m_DriveSubsystem));
 
     rBumper1.whileTrue(
       new RunCommand(
@@ -116,6 +120,7 @@ public class RobotContainer {
       
     xButton2.onTrue(
       new TagShift(m_VisionSubsystem, m_DriveSubsystem));
+
     }
 
 

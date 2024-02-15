@@ -2,6 +2,8 @@ package frc.robot.subsystems;
 
 import java.io.IOException;
 import java.lang.annotation.Target;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import javax.management.RuntimeErrorException;
@@ -41,6 +43,7 @@ public class VisionSubsystem extends SubsystemBase{
     private GenericEntry targetPoseY = Shuffleboard.getTab("Vision").add("Target Pose Y", 0.0).getEntry();
     private GenericEntry targetPoseRot = Shuffleboard.getTab("Vision").add("Target Pose Rot", 0.0).getEntry();
     private GenericEntry yaw = Shuffleboard.getTab("Vision").add("Yaw", 0.0).getEntry();
+    private GenericEntry bestTarID = Shuffleboard.getTab("Vision").add("Best ID", 0).getEntry();
 
     private static final Pose3d ROBOT_TO_CAMERA = VisionConstants.kCameraOffset;
 
@@ -71,7 +74,7 @@ public class VisionSubsystem extends SubsystemBase{
     }
     
     
-        public PhotonTrackedTarget getBestTarget() {
+    public PhotonTrackedTarget getBestTarget() {
         PhotonPipelineResult result = m_camera.getLatestResult();
 
         m_latestLatency = result.getLatencyMillis() / 1000.;
@@ -85,6 +88,22 @@ public class VisionSubsystem extends SubsystemBase{
         }
 
         return target;
+    }
+
+    public List<PhotonTrackedTarget> getTargets() {
+        PhotonPipelineResult result = m_camera.getLatestResult();
+
+        m_latestLatency = result.getLatencyMillis() / 1000.;
+
+        boolean hasTarget = result.hasTargets();
+
+        List<PhotonTrackedTarget> targets = null;
+
+        if (hasTarget) {
+            targets = result.getTargets();
+        }
+
+        return targets;
     }
 
     public Pose2d getLatestEstimatedRobotPose() {
@@ -105,8 +124,8 @@ public class VisionSubsystem extends SubsystemBase{
         return new Pose2d();
     }
 
-    public Pose2d getTargetPose(Transform3d offset) {
-        PhotonTrackedTarget target = getBestTarget();
+    public Pose2d getTargetPose(Transform3d offset, PhotonTrackedTarget target) {
+        
         Pose2d robotPose = m_DriveSubsystem.getPose();
         
 
@@ -155,12 +174,19 @@ public class VisionSubsystem extends SubsystemBase{
             m_DriveSubsystem.addVisionPoseEstimate(getLatestEstimatedRobotPose(), Timer.getFPGATimestamp());
         }
 
-        targetPoseX.setDouble(getTargetPose(VisionConstants.kTargetOffset).getX());
-        targetPoseY.setDouble(getTargetPose(VisionConstants.kTargetOffset).getY());
-        targetPoseRot.setDouble(getTargetPose(VisionConstants.kTargetOffset).getRotation().getDegrees());
+        targetPoseX.setDouble(getTargetPose(VisionConstants.kTargetOffset, results.getBestTarget()).getX());
+        targetPoseY.setDouble(getTargetPose(VisionConstants.kTargetOffset, results.getBestTarget()).getY());
+        targetPoseRot.setDouble(getTargetPose(VisionConstants.kTargetOffset, results.getBestTarget()).getRotation().getDegrees());
         yaw.setDouble(getVisionYaw());
+        
+        bestTarID.setInteger(getTargetID());
     }
 
-    
+    public int getTargetID() {
+        if(hasTargets()) {
+            return m_target.getFiducialId();
+        }
+        return -1;
+    }
     
   }

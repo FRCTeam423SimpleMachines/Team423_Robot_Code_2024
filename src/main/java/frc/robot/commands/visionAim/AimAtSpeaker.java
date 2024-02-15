@@ -12,10 +12,13 @@ import frc.robot.Constants.VisionConstants;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.VisionSubsystem;
 
+import java.util.List;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
-public class TagAlign extends Command {
+import org.photonvision.targeting.PhotonTrackedTarget;
+
+public class AimAtSpeaker extends Command {
     private static final TrapezoidProfile.Constraints omegaConstraints = new TrapezoidProfile.Constraints(4, 4);
     private final ProfiledPIDController omegaController = new ProfiledPIDController(2.6, 0, 0.2, omegaConstraints);
 
@@ -24,16 +27,19 @@ public class TagAlign extends Command {
 
     Pose2d targetPose = null;
     Rotation2d targetAngle = null;
+    List<PhotonTrackedTarget> targets;
+    PhotonTrackedTarget target = null;
 
-    private GenericEntry targetAngleEntry = Shuffleboard.getTab("Auto").add("Target Angle",0.0).getEntry();
-    private GenericEntry goalEntry = Shuffleboard.getTab("Auto").add("Goal",0.0).getEntry();
-    private GenericEntry targetPoseEntry = Shuffleboard.getTab("Auto").add("Target Pose Rotation",0.0).getEntry();
-    
+    private GenericEntry targetAngleEntry = Shuffleboard.getTab("Auto 2").add("Target Angle",0.0).getEntry();
+    private GenericEntry goalEntry = Shuffleboard.getTab("Auto 2").add("Goal",0.0).getEntry();
+    private GenericEntry targetPoseEntry = Shuffleboard.getTab("Auto 2").add("Target Pose Rotation",0.0).getEntry();
+    private GenericEntry bestTarID = Shuffleboard.getTab("Auto 2").add("Best ID", 0).getEntry();
+
     /**
      * @param drive
      * @param vision
      */
-    public TagAlign(VisionSubsystem vision, DriveSubsystem drive) {
+    public AimAtSpeaker(VisionSubsystem vision, DriveSubsystem drive) {
         m_DriveSubsystem = drive;
         m_VisionSubsystem = vision;
 
@@ -41,6 +47,8 @@ public class TagAlign extends Command {
         omegaController.enableContinuousInput(-Math.PI, Math.PI);
 
         addRequirements(m_DriveSubsystem);
+
+        targets = m_VisionSubsystem.getTargets();
     }
 
     @Override
@@ -61,9 +69,16 @@ public class TagAlign extends Command {
     public void execute() {
         Pose2d robotPose = m_DriveSubsystem.getPose();
         double omegaSpeed = 0.0;
+
+        for (PhotonTrackedTarget tar : targets) {
+            if(tar.getFiducialId()==4 || tar.getFiducialId()==8) {
+                target = tar;
+            }
+        }
        
-        if (m_VisionSubsystem.hasTargets()) {
-            targetPose = m_VisionSubsystem.getTargetPose(VisionConstants.kTargetOffset, m_VisionSubsystem.getBestTarget());
+        
+        if (m_VisionSubsystem.hasTargets() && target != null) {
+            targetPose = m_VisionSubsystem.getTargetPose(VisionConstants.kTargetOffset, target);
             omegaController.setGoal(targetPose.getRotation().getRadians());
             omegaSpeed = omegaController.calculate(robotPose.getRotation().getRadians());   
         }
@@ -71,11 +86,16 @@ public class TagAlign extends Command {
         if (omegaController.atGoal()) omegaSpeed = 0;
 
         m_DriveSubsystem.driveRobotRelative(new ChassisSpeeds(0.0, 0.0, -omegaSpeed));
+        
+        
+        
 
-        if (targetAngle != null && targetPose != null) {
-            targetAngleEntry.setDouble(targetAngle.getDegrees());
+
+
+        if (target != null && targetPose != null) {
             targetPoseEntry.setDouble(targetPose.getRotation().getDegrees());
             goalEntry.setDouble(Units.radiansToDegrees(omegaController.getGoal().position));
+            bestTarID.setInteger(target.getFiducialId());
         }
     }
 
