@@ -92,6 +92,7 @@ public class RobotContainer {
     Trigger bButton2 = m_driverController2.button(ControlConstants.kBButton);
     Trigger xButton2 = m_driverController2.button(ControlConstants.kXButton);
     Trigger aButton2 = m_driverController2.button(ControlConstants.kAButton);
+    Trigger yButton2 = m_driverController2.button(ControlConstants.kYButton);
 
 
     xButton1.whileTrue(
@@ -110,6 +111,10 @@ public class RobotContainer {
         () -> m_ShooterSubsystem.runShooter(5300),
         m_ShooterSubsystem));
 
+    yButton2.onTrue(
+      new RunCommand(
+        () -> m_ShooterSubsystem.runShooter(0),
+        m_ShooterSubsystem));
 
 
     rBumper1.whileTrue(
