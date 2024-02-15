@@ -12,6 +12,7 @@ import frc.robot.commands.visionAim.TagAlign;
 import frc.robot.commands.visionAim.TagShift;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.ExampleSubsystem;
+import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.VisionSubsystem;
 
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -40,6 +41,7 @@ public class RobotContainer {
   private final ExampleSubsystem m_exampleSubsystem = new ExampleSubsystem();
   private final DriveSubsystem m_DriveSubsystem = new DriveSubsystem();
   private final VisionSubsystem m_VisionSubsystem = new VisionSubsystem(m_DriveSubsystem);
+  private final ShooterSubsystem m_ShooterSubsystem = new ShooterSubsystem();
 
   private final CommandJoystick m_driverController1 = new CommandJoystick(ControlConstants.kControllerPort1); 
   private final CommandJoystick m_driverController2 = new CommandJoystick(ControlConstants.kControllerPort2); 
@@ -89,6 +91,7 @@ public class RobotContainer {
 
     Trigger bButton2 = m_driverController2.button(ControlConstants.kBButton);
     Trigger xButton2 = m_driverController2.button(ControlConstants.kXButton);
+    Trigger aButton2 = m_driverController2.button(ControlConstants.kAButton);
 
 
     xButton1.whileTrue(
@@ -101,6 +104,12 @@ public class RobotContainer {
       new RunCommand(
         () -> m_DriveSubsystem.resetDrive(),
         m_DriveSubsystem));
+
+    aButton2.onTrue(
+      new RunCommand(
+        () -> m_ShooterSubsystem.runShooter(5300),
+        m_ShooterSubsystem));
+
 
 
     rBumper1.whileTrue(
