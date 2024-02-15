@@ -48,7 +48,7 @@ public class TagShift extends Command{
 
     @Override
     public void initialize() {
-        strafeController.setTolerance(0.1);
+        strafeController.setTolerance(1);
         strafeController.setSetpoint(0);
 
 
@@ -61,19 +61,10 @@ public class TagShift extends Command{
 
     @Override
     public void execute() {
-        //strafeSpeed = strafeController.calculate(tx);
-        Pose2d robotPose = m_DriveSubsystem.getPose();
-        
        
-        if (m_VisionSubsystem.hasTargets()) {
-            targetPose = m_VisionSubsystem.getTargetPose(VisionConstants.kTargetOffset);
-            //strafeController.setSetpoint(targetPose.getY());
-            strafeSpeed = strafeController.calculate(targetPose.getY());   
-        }
-
-        //tx = m_VisionSubsystem.getVisionTX();
-
-        m_DriveSubsystem.driveRobotRelative(new ChassisSpeeds(0, strafeSpeed, 0));
+        strafeSpeed = strafeController.calculate(m_VisionSubsystem.getVisionYaw());   
+        
+        m_DriveSubsystem.driveRobotRelative(new ChassisSpeeds(0, -strafeSpeed, 0));
 
         if(targetPose != null) {
             targetPoseY.setDouble(targetPose.getY());
@@ -85,5 +76,10 @@ public class TagShift extends Command{
     @Override
     public boolean isFinished(){
         return strafeController.atSetpoint();
+    }
+
+    @Override
+    public void end(boolean interrupted) {
+        m_DriveSubsystem.driveRobotRelative(new ChassisSpeeds(0.0, 0.0, 0.0));
     }
 }

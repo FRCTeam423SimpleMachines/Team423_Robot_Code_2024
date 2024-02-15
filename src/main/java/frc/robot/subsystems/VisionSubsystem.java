@@ -1,6 +1,7 @@
 package frc.robot.subsystems;
 
 import java.io.IOException;
+import java.lang.annotation.Target;
 import java.util.Optional;
 
 import javax.management.RuntimeErrorException;
@@ -35,24 +36,25 @@ public class VisionSubsystem extends SubsystemBase{
 
     private PhotonCamera m_camera;
     private AprilTagFieldLayout m_layout;
+    private PhotonTrackedTarget m_target;
     private GenericEntry targetPoseX = Shuffleboard.getTab("Vision").add("Target Pose X", 0.0).getEntry();
     private GenericEntry targetPoseY = Shuffleboard.getTab("Vision").add("Target Pose Y", 0.0).getEntry();
     private GenericEntry targetPoseRot = Shuffleboard.getTab("Vision").add("Target Pose Rot", 0.0).getEntry();
+    private GenericEntry yaw = Shuffleboard.getTab("Vision").add("Yaw", 0.0).getEntry();
 
-    private static final Pose3d ROBOT_TO_CAMERA = new Pose3d(
-        Units.inchesToMeters(5.5), 
-        Units.inchesToMeters(-4), 
-        Units.inchesToMeters(18),
-        new Rotation3d(0, Units.degreesToRadians(40), Units.degreesToRadians(0))
-        );
+    private static final Pose3d ROBOT_TO_CAMERA = VisionConstants.kCameraOffset;
 
     private PhotonPipelineResult results;
     private double m_latestLatency = 0.0;
     GenericEntry aimAngle;
+    
     DriveSubsystem m_DriveSubsystem;
   
-    public double getVisionTX(){
-        return getLatestEstimatedRobotPose().getX();
+    public double getVisionYaw(){
+        if(m_target != null) {
+            return m_target.getYaw();
+        }
+        return 0.0;
     }
 
     public VisionSubsystem(DriveSubsystem drive) {
@@ -144,11 +146,10 @@ public class VisionSubsystem extends SubsystemBase{
        return results.hasTargets();
     }
 
-
-
     @Override
     public void periodic() {
         results = m_camera.getLatestResult(); 
+        m_target = results.getBestTarget();
         
         if (results.hasTargets()) {
             m_DriveSubsystem.addVisionPoseEstimate(getLatestEstimatedRobotPose(), Timer.getFPGATimestamp());
@@ -157,26 +158,9 @@ public class VisionSubsystem extends SubsystemBase{
         targetPoseX.setDouble(getTargetPose(VisionConstants.kTargetOffset).getX());
         targetPoseY.setDouble(getTargetPose(VisionConstants.kTargetOffset).getY());
         targetPoseRot.setDouble(getTargetPose(VisionConstants.kTargetOffset).getRotation().getDegrees());
+        yaw.setDouble(getVisionYaw());
     }
 
     
     
   }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

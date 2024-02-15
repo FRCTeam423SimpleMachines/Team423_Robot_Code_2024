@@ -6,6 +6,7 @@ package frc.robot;
 
 import com.revrobotics.CANSparkBase.IdleMode;
 
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -174,5 +175,11 @@ public final class Constants {
 
   public static final class VisionConstants {
     public static final Transform3d kTargetOffset = new Transform3d(0, 0, Units.inchesToMeters(52), new Rotation3d(0,0,0));
+    public static final Pose3d kCameraOffset = new Pose3d(
+      Units.inchesToMeters(5.5), 
+      Units.inchesToMeters(-4), 
+      Units.inchesToMeters(18),
+      new Rotation3d(0, Units.degreesToRadians(40), Units.degreesToRadians(0))
+      );
   }
 }
