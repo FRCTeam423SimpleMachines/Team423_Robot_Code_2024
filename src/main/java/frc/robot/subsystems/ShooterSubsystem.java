@@ -11,6 +11,7 @@ import com.revrobotics.SparkAbsoluteEncoder.Type;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants.ShooterConstants;
 
 public class ShooterSubsystem extends SubsystemBase{
     
@@ -28,9 +29,9 @@ public class ShooterSubsystem extends SubsystemBase{
  
 
     public ShooterSubsystem() {
-        m_LeftSparkMax = new CANSparkMax(20, MotorType.kBrushless);
-        m_RightSparkMax = new CANSparkMax(21, MotorType.kBrushless);
-        m_PitchSparkMax = new CANSparkMax(22, MotorType.kBrushless);
+        m_LeftSparkMax = new CANSparkMax(ShooterConstants.kLeftMotorCANId, MotorType.kBrushless);
+        m_RightSparkMax = new CANSparkMax(ShooterConstants.kRightMotorCANId, MotorType.kBrushless);
+        m_PitchSparkMax = new CANSparkMax(ShooterConstants.kPitchMotorCANId, MotorType.kBrushless);
         m_LeftEncoder = m_LeftSparkMax.getEncoder();
         m_RightEncoder = m_RightSparkMax.getEncoder();
         m_PitchEncoder = m_PitchSparkMax.getEncoder();
