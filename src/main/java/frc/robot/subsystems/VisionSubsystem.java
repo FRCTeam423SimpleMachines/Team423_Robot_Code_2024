@@ -170,7 +170,7 @@ public class VisionSubsystem extends SubsystemBase{
         results = m_camera.getLatestResult(); 
         m_target = results.getBestTarget();
         
-        if (results.hasTargets()) {
+        if (results.hasTargets() && m_target.getPoseAmbiguity() < 0.2) {
             m_DriveSubsystem.addVisionPoseEstimate(getLatestEstimatedRobotPose(), Timer.getFPGATimestamp());
         }
 

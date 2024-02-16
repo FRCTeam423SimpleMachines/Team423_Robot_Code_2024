@@ -4,6 +4,8 @@
 
 package frc.robot.subsystems;
 
+import javax.lang.model.type.PrimitiveType;
+
 import com.kauailabs.navx.frc.AHRS;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
@@ -95,9 +97,9 @@ public class DriveSubsystem extends SubsystemBase {
       m_frontRight.getPosition(),
       m_rearLeft.getPosition(),
       m_rearRight.getPosition()},
-      new Pose2d()
-      // ,VecBuilder.fill(0.01, 0.01, 0.01),
-      // VecBuilder.fill(0.9, 0.9, 0.9)      
+      new Pose2d(),
+      VecBuilder.fill(0.01, 0.01, 0.01),
+      VecBuilder.fill(0.9, 0.9, 0.9)      
   );
 
      

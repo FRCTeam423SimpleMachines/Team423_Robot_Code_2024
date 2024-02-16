@@ -2,7 +2,7 @@
   "version": 1.0,
   "startingPose": {
     "position": {
-      "x": 0.8686726496887707,
+      "x": 1.37,
       "y": 6.138615211040798
     },
     "rotation": 0
@@ -18,15 +18,51 @@
           }
         },
         {
+          "type": "wait",
+          "data": {
+            "waitTime": 1.0
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "AimAtSpeaker"
+          }
+        },
+        {
           "type": "path",
           "data": {
             "pathName": "Pickup Middle Ring"
           }
         },
         {
+          "type": "wait",
+          "data": {
+            "waitTime": 1.0
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "AimAtSpeaker"
+          }
+        },
+        {
           "type": "path",
           "data": {
             "pathName": "Pickup Bottom Ring"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 1.0
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "AimAtSpeaker"
           }
         }
       ]

@@ -20,10 +20,11 @@ import org.photonvision.targeting.PhotonTrackedTarget;
 
 public class AimAtSpeaker extends Command {
     private static final TrapezoidProfile.Constraints omegaConstraints = new TrapezoidProfile.Constraints(4, 4);
-    private final ProfiledPIDController omegaController = new ProfiledPIDController(2.6, 0, 0.2, omegaConstraints);
+    private final ProfiledPIDController omegaController = new ProfiledPIDController(0.5, 0, 0.2, omegaConstraints);
 
     private final DriveSubsystem m_DriveSubsystem;
     private final VisionSubsystem m_VisionSubsystem;
+    double omegaSpeed = 0.0;
 
     Pose2d targetPose = null;
     Rotation2d targetAngle = null;
@@ -33,7 +34,8 @@ public class AimAtSpeaker extends Command {
     private GenericEntry targetAngleEntry = Shuffleboard.getTab("Auto 2").add("Target Angle",0.0).getEntry();
     private GenericEntry goalEntry = Shuffleboard.getTab("Auto 2").add("Goal",0.0).getEntry();
     private GenericEntry targetPoseEntry = Shuffleboard.getTab("Auto 2").add("Target Pose Rotation",0.0).getEntry();
-    private GenericEntry bestTarID = Shuffleboard.getTab("Auto 2").add("Best ID", 0).getEntry();
+    private GenericEntry bestTarID = Shuffleboard.getTab("Auto 2").add("Targeting ID", 0).getEntry();
+    private GenericEntry numTars = Shuffleboard.getTab("Auto 2").add("Targets", 0).getEntry();
 
     /**
      * @param drive
@@ -48,7 +50,7 @@ public class AimAtSpeaker extends Command {
 
         addRequirements(m_DriveSubsystem);
 
-        targets = m_VisionSubsystem.getTargets();
+        
     }
 
     @Override
@@ -68,34 +70,40 @@ public class AimAtSpeaker extends Command {
     @Override
     public void execute() {
         Pose2d robotPose = m_DriveSubsystem.getPose();
-        double omegaSpeed = 0.0;
+        
 
-        for (PhotonTrackedTarget tar : targets) {
-            if(tar.getFiducialId()==4 || tar.getFiducialId()==8) {
-                target = tar;
+        if(m_VisionSubsystem.hasTargets()) {
+            targets = m_VisionSubsystem.getTargets();
+        }
+
+        if(targets != null) {
+            for (PhotonTrackedTarget tar : targets) {
+                if(tar.getFiducialId()==4 || tar.getFiducialId()==8) {
+                    target = tar;
+                }
             }
         }
-       
+        
         
         if (m_VisionSubsystem.hasTargets() && target != null) {
-            targetPose = m_VisionSubsystem.getTargetPose(VisionConstants.kTargetOffset, target);
-            omegaController.setGoal(targetPose.getRotation().getRadians());
-            omegaSpeed = omegaController.calculate(robotPose.getRotation().getRadians());   
+            targetPose = m_VisionSubsystem.getTargetPose(VisionConstants.kTargetOffset, target);  
         }
+
+        
+        omegaController.setGoal(targetPose.getRotation().getRadians());
+        omegaSpeed = omegaController.calculate(robotPose.getRotation().getRadians());  
+        
 
         if (omegaController.atGoal()) omegaSpeed = 0;
 
         m_DriveSubsystem.driveRobotRelative(new ChassisSpeeds(0.0, 0.0, -omegaSpeed));
         
-        
-        
-
-
 
         if (target != null && targetPose != null) {
             targetPoseEntry.setDouble(targetPose.getRotation().getDegrees());
             goalEntry.setDouble(Units.radiansToDegrees(omegaController.getGoal().position));
             bestTarID.setInteger(target.getFiducialId());
+            numTars.setInteger(targets.size());
         }
     }
 

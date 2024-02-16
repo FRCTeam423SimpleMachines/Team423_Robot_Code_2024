@@ -24,6 +24,7 @@ public class TagAlign extends Command {
 
     Pose2d targetPose = null;
     Rotation2d targetAngle = null;
+    double omegaSpeed = 0.0;
 
     private GenericEntry targetAngleEntry = Shuffleboard.getTab("Auto").add("Target Angle",0.0).getEntry();
     private GenericEntry goalEntry = Shuffleboard.getTab("Auto").add("Goal",0.0).getEntry();
@@ -60,7 +61,7 @@ public class TagAlign extends Command {
     @Override
     public void execute() {
         Pose2d robotPose = m_DriveSubsystem.getPose();
-        double omegaSpeed = 0.0;
+        
        
         if (m_VisionSubsystem.hasTargets()) {
             targetPose = m_VisionSubsystem.getTargetPose(VisionConstants.kTargetOffset, m_VisionSubsystem.getBestTarget());
