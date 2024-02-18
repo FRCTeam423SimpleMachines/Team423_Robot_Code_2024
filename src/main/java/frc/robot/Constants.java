@@ -192,5 +192,75 @@ public final class Constants {
     public static final double fieldLength = Units.inchesToMeters(651.25);
     public static final double fieldWidth = Units.inchesToMeters(315.5);
 
+    public static AprilTagFieldLayout aprilTagFieldLayout = AprilTagFields.k2024Crescendo.loadAprilTagLayoutField();
+
+    public static Pose2d getSpeakerPose() {
+      return aprilTagFieldLayout.getTagPose(getSpeakerTag()).get().toPose2d();
+    }
+
+    public static int getSpeakerTag() {
+      return isBlue() ? 7 : 4;
+    }
+        
+    public static Pose2d getAmpPose() {
+      return aprilTagFieldLayout.getTagPose(getAmpTag()).get().toPose2d();
+    }
+
+    public static int getAmpTag() {
+      return isBlue() ? 6 : 5;
+    }
+
+    public static Pose2d getPoseFromTag(int tag){
+      return aprilTagFieldLayout.getTagPose(tag).get().toPose2d();
+    }
+        
+    public static Pose2d getSourcePose() {
+      //returns the position immedialey between the two tags
+      return aprilTagFieldLayout.getTagPose(getRightSourceTag()).get().toPose2d()
+        .interpolate(aprilTagFieldLayout.getTagPose(getLeftSourceTag()).get().toPose2d(),
+        0.5);
+    }
+
+    public static int getLeftSourceTag() {
+        return isBlue() ? 2 : 10;
+    }
+
+    public static int getRightSourceTag() {
+        return isBlue() ? 1 : 9;
+    }
+
+    public static Pose2d getTrapPose() {
+      if(aprilTagFieldLayout.getTagPose(getTrap1Tag()).get().toPose2d() == null){
+        if(aprilTagFieldLayout.getTagPose(getTrap2Tag()).get().toPose2d() == null){          
+          return aprilTagFieldLayout.getTagPose(getTrap3Tag()).get().toPose2d();
+        }
+        else{
+          return aprilTagFieldLayout.getTagPose(getTrap2Tag()).get().toPose2d();
+        }
+      }
+      else{
+        return aprilTagFieldLayout.getTagPose(getTrap1Tag()).get().toPose2d();
+      }
+    }
+
+    public static int getTrap1Tag() {
+      return isBlue() ? 12 : 15;
+    }
+
+    public static int getTrap2Tag() {
+      return isBlue() ? 13 : 14;
+    }
+
+    public static int getTrap3Tag() {
+      return isBlue() ? 11 : 16;
+    }
+
+    public static boolean isBlue() {
+      return DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue) == DriverStation.Alliance.Blue;
+    }
+
+    public static Pose2d conditionallyFlipPose(Pose2d pose) {
+      return isBlue() ? pose : GeometryUtil.flipFieldPose(pose);
+    }
   }
 }
