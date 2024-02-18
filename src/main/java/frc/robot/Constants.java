@@ -4,8 +4,12 @@
 
 package frc.robot;
 
+import com.pathplanner.lib.util.GeometryUtil;
 import com.revrobotics.CANSparkBase.IdleMode;
 
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFields;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
@@ -13,6 +17,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.DriverStation;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide
@@ -175,11 +180,17 @@ public final class Constants {
 
   public static final class VisionConstants {
     public static final Transform3d kTargetOffset = new Transform3d(0, 0, Units.inchesToMeters(52), new Rotation3d(0,0,0));
-    public static final Pose3d kCameraOffset = new Pose3d(
+    public static final Pose3d kRobotToCamera = new Pose3d(
       Units.inchesToMeters(5.5), 
       Units.inchesToMeters(-4), 
       Units.inchesToMeters(18),
       new Rotation3d(0, Units.degreesToRadians(-15), Units.degreesToRadians(0))
       );
+  }
+
+  public static final class FieldConstants {
+    public static final double fieldLength = Units.inchesToMeters(651.25);
+    public static final double fieldWidth = Units.inchesToMeters(315.5);
+
   }
 }

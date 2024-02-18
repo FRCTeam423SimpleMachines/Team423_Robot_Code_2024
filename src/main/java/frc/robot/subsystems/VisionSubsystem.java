@@ -4,32 +4,44 @@ import java.io.IOException;
 import java.lang.annotation.Target;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import javax.management.RuntimeErrorException;
 import javax.swing.JList.DropLocation;
 
+import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
+import org.photonvision.PhotonPoseEstimator;
 import org.photonvision.PhotonUtils;
+import org.photonvision.PhotonPoseEstimator.PoseStrategy;
 import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
+import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.GenericEntry;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.SimpleWidget;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.MathUtils;
+import frc.robot.Constants.FieldConstants;
 import frc.robot.Constants.VisionConstants;
 
 
@@ -44,8 +56,7 @@ public class VisionSubsystem extends SubsystemBase{
     private GenericEntry targetPoseRot = Shuffleboard.getTab("Vision").add("Target Pose Rot", 0.0).getEntry();
     private GenericEntry yaw = Shuffleboard.getTab("Vision").add("Yaw", 0.0).getEntry();
     private GenericEntry bestTarID = Shuffleboard.getTab("Vision").add("Best ID", 0).getEntry();
-
-    private static final Pose3d ROBOT_TO_CAMERA = VisionConstants.kCameraOffset;
+    private PhotonPoseEstimator poseEstimator;
 
     private PhotonPipelineResult results;
     private double m_latestLatency = 0.0;
@@ -64,15 +75,10 @@ public class VisionSubsystem extends SubsystemBase{
         m_DriveSubsystem = drive;
         m_camera = new PhotonCamera("Limelight");
         results = m_camera.getLatestResult(); 
-
-        try {
-            m_layout = AprilTagFieldLayout.loadFromResource(AprilTagFields.k2024Crescendo.m_resourceFile);
-        }
-        catch (IOException err) {
-            throw new RuntimeException();
-        }
+        m_layout = AprilTagFields.k2024Crescendo.loadAprilTagLayoutField();
+        Transform3d robotToCam = new Transform3d(VisionConstants.kRobotToCamera.getTranslation(),VisionConstants.kRobotToCamera.getRotation());
+        poseEstimator = new PhotonPoseEstimator(m_layout, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, m_camera, robotToCam);    
     }
-    
     
     public PhotonTrackedTarget getBestTarget() {
         PhotonPipelineResult result = m_camera.getLatestResult();
@@ -110,7 +116,13 @@ public class VisionSubsystem extends SubsystemBase{
         PhotonTrackedTarget target = getBestTarget();
 
         if (target != null) {
-            Transform3d cameraToTarget = target.getAlternateCameraToTarget();
+            Transform3d cameraToTarget = new Transform3d(target.getBestCameraToTarget().getTranslation(), 
+                new Rotation3d(
+                    Units.degreesToRadians(target.getSkew()), 
+                    Units.degreesToRadians(target.getPitch()), 
+                    Units.degreesToRadians(target.getYaw())
+                )
+            );
 
             Optional<Pose3d> tagPose = m_layout.getTagPose(target.getFiducialId());
 
@@ -130,7 +142,7 @@ public class VisionSubsystem extends SubsystemBase{
         
 
         if (target != null) {
-            Transform3d cameraToTarget = new Transform3d(target.getAlternateCameraToTarget().getTranslation(), 
+            Transform3d cameraToTarget = new Transform3d(target.getBestCameraToTarget().getTranslation(), 
                 new Rotation3d(
                     Units.degreesToRadians(target.getSkew()), 
                     Units.degreesToRadians(target.getPitch()), 
@@ -149,12 +161,50 @@ public class VisionSubsystem extends SubsystemBase{
 
             Pose2d finalPose = newPose.plus(
                     new Transform2d(
-                            ROBOT_TO_CAMERA.getTranslation().toTranslation2d(),
-                            ROBOT_TO_CAMERA.getRotation().toRotation2d()));
+                            VisionConstants.kRobotToCamera.getTranslation().toTranslation2d(),
+                            VisionConstants.kRobotToCamera.getRotation().toRotation2d()));
             return finalPose;
         }
 
         return robotPose;
+    }
+
+    private void addVisionPoseEstimate(EstimatedRobotPose estimate) {
+        if (!isValidPose(estimate.estimatedPose)) return;
+
+        var estimatedPose = estimate.estimatedPose.toPose2d();
+
+        double averageDistance = 0;
+
+        for (PhotonTrackedTarget target : estimate.targetsUsed) {
+            averageDistance += target.getBestCameraToTarget().getTranslation().getNorm();
+        }
+
+        averageDistance /= estimate.targetsUsed.size();
+
+        m_DriveSubsystem.addVisionPoseEstimate(
+                estimatedPose, estimate.timestampSeconds, calculateVisionStdDevs(averageDistance));
+    }
+
+    private boolean isValidPose(Pose3d pose) {
+        boolean isWithinField = MathUtils.isInRange(pose.getY(), -5, FieldConstants.fieldWidth + 5)
+                && MathUtils.isInRange(pose.getX(), -5, FieldConstants.fieldLength + 5)
+                && MathUtils.isInRange(pose.getZ(), 0, 5);
+
+        boolean isNearRobot = m_DriveSubsystem
+                        .getPose()
+                        .getTranslation()
+                        .getDistance(pose.getTranslation().toTranslation2d())
+                < 1.4;
+
+        return isWithinField && isNearRobot;
+    }
+
+    private Matrix<N3, N1> calculateVisionStdDevs(double distance) {
+        var translationStdDev = 0.3 * Math.pow(distance, 2);
+        var rotationStdDev = 0.9 * Math.pow(distance, 2);
+
+        return VecBuilder.fill(translationStdDev, translationStdDev, rotationStdDev);
     }
 
     public double getLatestLatency() {
@@ -170,8 +220,11 @@ public class VisionSubsystem extends SubsystemBase{
         results = m_camera.getLatestResult(); 
         m_target = results.getBestTarget();
         
-        if (results.hasTargets() && m_target.getPoseAmbiguity() < 0.2) {
-            m_DriveSubsystem.addVisionPoseEstimate(getLatestEstimatedRobotPose(), Timer.getFPGATimestamp());
+        
+        var estimatedPose = poseEstimator.update();
+        
+        if(estimatedPose.isPresent()) {
+            addVisionPoseEstimate(estimatedPose.get());  
         }
 
         targetPoseX.setDouble(getTargetPose(VisionConstants.kTargetOffset, results.getBestTarget()).getX());
@@ -188,5 +241,5 @@ public class VisionSubsystem extends SubsystemBase{
         }
         return -1;
     }
-    
+
   }
