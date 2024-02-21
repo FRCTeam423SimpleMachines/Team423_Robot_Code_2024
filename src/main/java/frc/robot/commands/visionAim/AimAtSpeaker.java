@@ -11,31 +11,27 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants.VisionConstants;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.VisionSubsystem;
-
 import java.util.List;
-import java.util.function.DoubleSupplier;
-import java.util.function.Supplier;
+
 
 import org.photonvision.targeting.PhotonTrackedTarget;
 
 public class AimAtSpeaker extends Command {
     private static final TrapezoidProfile.Constraints omegaConstraints = new TrapezoidProfile.Constraints(4, 4);
-    private final ProfiledPIDController omegaController = new ProfiledPIDController(0.5, 0, 0.2, omegaConstraints);
+    private final ProfiledPIDController omegaController = new ProfiledPIDController(1.5, 0, 0, omegaConstraints);
 
     private final DriveSubsystem m_DriveSubsystem;
     private final VisionSubsystem m_VisionSubsystem;
     double omegaSpeed = 0.0;
 
     Pose2d targetPose = null;
-    Rotation2d targetAngle = null;
     List<PhotonTrackedTarget> targets;
     PhotonTrackedTarget target = null;
 
-    private GenericEntry targetAngleEntry = Shuffleboard.getTab("Auto 2").add("Target Angle",0.0).getEntry();
-    private GenericEntry goalEntry = Shuffleboard.getTab("Auto 2").add("Goal",0.0).getEntry();
-    private GenericEntry targetPoseEntry = Shuffleboard.getTab("Auto 2").add("Target Pose Rotation",0.0).getEntry();
-    private GenericEntry bestTarID = Shuffleboard.getTab("Auto 2").add("Targeting ID", 0).getEntry();
-    private GenericEntry numTars = Shuffleboard.getTab("Auto 2").add("Targets", 0).getEntry();
+    // private GenericEntry goalEntry = Shuffleboard.getTab("Auto 2").add("Goal",0.0).getEntry();
+    // private GenericEntry targetPoseEntry = Shuffleboard.getTab("Auto 2").add("Target Pose Rotation",0.0).getEntry();
+    // private GenericEntry bestTarID = Shuffleboard.getTab("Auto 2").add("Targeting ID", 0).getEntry();
+    // private GenericEntry numTars = Shuffleboard.getTab("Auto 2").add("Targets", 0).getEntry();
 
     /**
      * @param drive
@@ -99,12 +95,12 @@ public class AimAtSpeaker extends Command {
         m_DriveSubsystem.driveRobotRelative(new ChassisSpeeds(0.0, 0.0, -omegaSpeed));
         
 
-        if (target != null && targetPose != null) {
-            targetPoseEntry.setDouble(targetPose.getRotation().getDegrees());
-            goalEntry.setDouble(Units.radiansToDegrees(omegaController.getGoal().position));
-            bestTarID.setInteger(target.getFiducialId());
-            numTars.setInteger(targets.size());
-        }
+        // if (target != null && targetPose != null) {
+        //     targetPoseEntry.setDouble(targetPose.getRotation().getDegrees());
+        //     goalEntry.setDouble(Units.radiansToDegrees(omegaController.getGoal().position));
+        //     bestTarID.setInteger(target.getFiducialId());
+        //     numTars.setInteger(targets.size());
+        // }
     }
 
     @Override

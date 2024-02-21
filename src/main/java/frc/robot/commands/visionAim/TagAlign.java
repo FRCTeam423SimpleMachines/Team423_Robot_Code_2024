@@ -25,10 +25,6 @@ public class TagAlign extends Command {
     Pose2d targetPose = null;
     Rotation2d targetAngle = null;
     double omegaSpeed = 0.0;
-
-    private GenericEntry targetAngleEntry = Shuffleboard.getTab("Auto").add("Target Angle",0.0).getEntry();
-    private GenericEntry goalEntry = Shuffleboard.getTab("Auto").add("Goal",0.0).getEntry();
-    private GenericEntry targetPoseEntry = Shuffleboard.getTab("Auto").add("Target Pose Rotation",0.0).getEntry();
     
     /**
      * @param drive
@@ -73,11 +69,7 @@ public class TagAlign extends Command {
 
         m_DriveSubsystem.driveRobotRelative(new ChassisSpeeds(0.0, 0.0, -omegaSpeed));
 
-        if (targetAngle != null && targetPose != null) {
-            targetAngleEntry.setDouble(targetAngle.getDegrees());
-            targetPoseEntry.setDouble(targetPose.getRotation().getDegrees());
-            goalEntry.setDouble(Units.radiansToDegrees(omegaController.getGoal().position));
-        }
+        
     }
 
     @Override

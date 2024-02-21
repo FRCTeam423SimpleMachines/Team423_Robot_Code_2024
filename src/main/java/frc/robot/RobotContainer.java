@@ -17,6 +17,7 @@ import frc.robot.subsystems.ExampleSubsystem;
 import frc.robot.subsystems.VisionSubsystem;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.SlewRateLimiter;
@@ -24,6 +25,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -47,7 +49,8 @@ public class RobotContainer {
   private final CommandJoystick m_driverController1 = new CommandJoystick(ControlConstants.kControllerPort1); 
   private final CommandJoystick m_driverController2 = new CommandJoystick(ControlConstants.kControllerPort2); 
 
-  SendableChooser<Command> m_chooser = AutoBuilder.buildAutoChooser();
+  SendableChooser<Command> m_chooser; 
+
 
   private SlewRateLimiter slewY = new SlewRateLimiter(2);
   private SlewRateLimiter slewX = new SlewRateLimiter(2);
@@ -55,6 +58,13 @@ public class RobotContainer {
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
 
+    //Register named commads for pathplanner 
+    NamedCommands.registerCommand("AimAtSpeaker", new AimAtSpeaker(m_VisionSubsystem, m_DriveSubsystem));
+    //NamedCommands.registerCommand("Shoot", new AimAndShoot()); //Whatever makes the shooter shoot and aim
+    //NamedCommands.registerCommand("PickUpInit", new ParallelCommandGroup(null)); //Command group to set the robot up to pick up rings during auton
+
+    m_chooser = AutoBuilder.buildAutoChooser();
+    
     Shuffleboard.getTab("Autonomous").add(m_chooser);
 
     // Configure the trigger bindings
@@ -107,7 +117,7 @@ public class RobotContainer {
         m_DriveSubsystem));
 
     aButton1.onTrue(
-      new AimAtPose(m_DriveSubsystem, FieldConstants.getSpeakerPose()));
+      new AimAtSpeaker(m_VisionSubsystem, m_DriveSubsystem));
 
     rBumper1.whileTrue(
       new RunCommand(

@@ -2,8 +2,8 @@
   "version": 1.0,
   "startingPose": {
     "position": {
-      "x": 1.2437546130441748,
-      "y": 6.885971888919526
+      "x": 1.3023087957730821,
+      "y": 2.2250589436984876
     },
     "rotation": 0
   },
@@ -12,9 +12,15 @@
     "data": {
       "commands": [
         {
+          "type": "named",
+          "data": {
+            "name": "PickUpInit"
+          }
+        },
+        {
           "type": "path",
           "data": {
-            "pathName": "Pickup Top Ring"
+            "pathName": "Close Bottom Ring (BTT)"
           }
         },
         {
@@ -30,9 +36,15 @@
           }
         },
         {
+          "type": "named",
+          "data": {
+            "name": "Shoot"
+          }
+        },
+        {
           "type": "path",
           "data": {
-            "pathName": "Pickup Middle Ring"
+            "pathName": "Close Middle Ring (BTT)"
           }
         },
         {
@@ -48,9 +60,15 @@
           }
         },
         {
+          "type": "named",
+          "data": {
+            "name": "Shoot"
+          }
+        },
+        {
           "type": "path",
           "data": {
-            "pathName": "Pickup Bottom Ring"
+            "pathName": "Close Top Ring (BTT)"
           }
         },
         {
@@ -63,6 +81,12 @@
           "type": "named",
           "data": {
             "name": "AimAtSpeaker"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Shoot"
           }
         }
       ]

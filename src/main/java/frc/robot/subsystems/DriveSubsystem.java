@@ -98,7 +98,7 @@ public class DriveSubsystem extends SubsystemBase {
       m_rearRight.getPosition()},
       new Pose2d(),
       VecBuilder.fill(0.01, 0.01, 0.01),
-      VecBuilder.fill(0.01, 0.01, 0.01)      
+      VecBuilder.fill(0.9, 0.9, 0.9)      
   );
 
   private final Field2d m_field = new Field2d();
