@@ -4,11 +4,8 @@
 
 package frc.robot;
 
-
-import frc.robot.commands.Autos;
 import frc.robot.commands.DoNothingAuton;
-import frc.robot.commands.ExampleCommand;
-import frc.robot.commands.visionAim.TagAlign;
+import frc.robot.commands.ShootAtSpeed;
 import frc.robot.commands.visionAim.TagShift;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.ExampleSubsystem;
@@ -66,6 +63,8 @@ public class RobotContainer {
           -0.5*slewX.calculate(MathUtil.applyDeadband(m_driverController1.getRawAxis(Constants.ControlConstants.kLeftXAxis), 0.15)) ,
           -0.5*(MathUtil.applyDeadband(m_driverController1.getRawAxis(Constants.ControlConstants.kRightXAxis), 0.15)),
           true, true), m_DriveSubsystem));
+
+    m_ShooterSubsystem.setDefaultCommand(new RunCommand( () -> m_ShooterSubsystem.runShooter(0,0), m_ShooterSubsystem));
   }
 
   /**
@@ -78,15 +77,10 @@ public class RobotContainer {
    * joysticks}.
    */
   private void configureBindings() {
-    // Schedule `ExampleCommand` when `exampleCondition` changes to `true`
-    new Trigger(m_exampleSubsystem::exampleCondition)
-        .onTrue(new ExampleCommand(m_exampleSubsystem));
-
-    // Schedule `exampleMethodCommand` when the Xbox controller's B button is pressed,
-    // cancelling on release.
+    
+    //Button Onjects to asign bindings
     Trigger xButton1 = m_driverController1.button(ControlConstants.kXButton);
     Trigger rBumper1 = m_driverController1.button(ControlConstants.kRightBumper);
-
     Trigger yButton1 = m_driverController1.button(ControlConstants.kYButton);
 
     Trigger bButton2 = m_driverController2.button(ControlConstants.kBButton);
@@ -106,16 +100,7 @@ public class RobotContainer {
         () -> m_DriveSubsystem.resetDrive(),
         m_DriveSubsystem));
 
-    aButton2.onTrue(
-      new RunCommand(
-        () -> m_ShooterSubsystem.runShooter(5300),
-        m_ShooterSubsystem));
-
-    yButton2.onTrue(
-      new RunCommand(
-        () -> m_ShooterSubsystem.runShooter(0),
-        m_ShooterSubsystem));
-
+    aButton2.whileTrue(new ShootAtSpeed(m_ShooterSubsystem, 3500));
 
     rBumper1.whileTrue(
       new RunCommand(
@@ -128,9 +113,7 @@ public class RobotContainer {
   
 
 
-    bButton2.onTrue(
-      new TagAlign(m_VisionSubsystem, m_DriveSubsystem));  
-      
+    
     xButton2.onTrue(
       new TagShift(m_VisionSubsystem, m_DriveSubsystem));
     }

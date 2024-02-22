@@ -1,5 +1,7 @@
 package frc.robot.subsystems;
 
+import javax.swing.text.StyleContext.SmallAttributeSet;
+
 import org.photonvision.targeting.PhotonPipelineResult;
 
 import com.revrobotics.AbsoluteEncoder;
@@ -10,48 +12,57 @@ import com.revrobotics.SparkAbsoluteEncoder.Type;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.ShooterConstants;
 
 public class ShooterSubsystem extends SubsystemBase{
     
-    private final CANSparkMax m_LeftSparkMax;
-    private final CANSparkMax m_RightSparkMax;
+    private final CANSparkMax m_LeftShooterMoter;
+    private final CANSparkMax m_RightShooterMoter;
     private final CANSparkMax m_PitchSparkMax;
     private final RelativeEncoder m_LeftEncoder;
     private final RelativeEncoder m_RightEncoder;
     private final RelativeEncoder m_PitchEncoder;
     private final AbsoluteEncoder m_PitchAbsoluteEncoder;
-    private final PIDController m_leftShooterController = new PIDController(0.1, 0, 0);
-    private final PIDController m_rightShooterController = new PIDController(0.1, 0, 0);
-    private final PIDController m_pitchController = new PIDController(0.1, 0, 0);
-    private double targetPitch; 
+
  
 
     public ShooterSubsystem() {
-        m_LeftSparkMax = new CANSparkMax(ShooterConstants.kLeftMotorCANId, MotorType.kBrushless);
-        m_RightSparkMax = new CANSparkMax(ShooterConstants.kRightMotorCANId, MotorType.kBrushless);
+        m_LeftShooterMoter = new CANSparkMax(ShooterConstants.kLeftMotorCANId, MotorType.kBrushless);
+        m_RightShooterMoter = new CANSparkMax(ShooterConstants.kRightMotorCANId, MotorType.kBrushless);
         m_PitchSparkMax = new CANSparkMax(ShooterConstants.kPitchMotorCANId, MotorType.kBrushless);
-        m_LeftEncoder = m_LeftSparkMax.getEncoder();
-        m_RightEncoder = m_RightSparkMax.getEncoder();
+        m_LeftEncoder = m_LeftShooterMoter.getEncoder();
+        m_RightEncoder = m_RightShooterMoter.getEncoder();
         m_PitchEncoder = m_PitchSparkMax.getEncoder();
         m_PitchAbsoluteEncoder = m_PitchSparkMax.getAbsoluteEncoder(Type.kDutyCycle);
     }
 
-    public void runShooter(int desiredRPM) {
-        m_LeftSparkMax.set(m_leftShooterController.calculate(m_LeftEncoder.getVelocity(), desiredRPM));
-        m_RightSparkMax.set(m_rightShooterController.calculate(m_RightEncoder.getVelocity(), -desiredRPM));
+    public void runShooter(double lSpeed, double rSpeed) {
+        m_LeftShooterMoter.set(lSpeed);
+        m_RightShooterMoter.set(rSpeed);
     }
 
-    public void setPitch(double goalPitch) {
-        m_PitchSparkMax.set(m_pitchController.calculate(m_PitchAbsoluteEncoder.getPosition(), goalPitch));
+    public void setShooterVolt(double lVoltage, double rVoltage ) {
+        m_LeftShooterMoter.setVoltage(lVoltage);
+        m_LeftShooterMoter.setVoltage(rVoltage);
     }
 
+    public void setPitchSpeed(double speed) {
+        m_PitchSparkMax.set(speed);
+    }
 
+    public double getLeftRPM() {
+        return m_LeftEncoder.getVelocity();
+    }
+
+    public double getRightRPM() {
+        return m_RightEncoder.getVelocity();
+    }
 
     @Override
     public void periodic() {
-
+        SmartDashboard.putNumber("Left RPM", getLeftRPM());
 
 
     }
