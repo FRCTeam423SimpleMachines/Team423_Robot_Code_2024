@@ -4,12 +4,18 @@
 
 package frc.robot.subsystems;
 
+import javax.lang.model.type.PrimitiveType;
+
 import com.kauailabs.navx.frc.AHRS;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.PIDConstants;
 import com.pathplanner.lib.util.ReplanningConfig;
 
+import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.estimator.PoseEstimator;
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -19,16 +25,22 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.networktables.GenericEntry;
 
 import edu.wpi.first.util.WPIUtilJNI;
 import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.SPI;
+import frc.robot.LimelightHelpers;
 import frc.robot.SwerveUtils;
 import frc.robot.Constants.DriveConstants;
+import frc.robot.LimelightHelpers.LimelightResults;
+import frc.robot.LimelightHelpers.LimelightTarget_Detector;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class DriveSubsystem extends SubsystemBase {
@@ -75,33 +87,35 @@ public class DriveSubsystem extends SubsystemBase {
   private SlewRateLimiter m_rotLimiter = new SlewRateLimiter(DriveConstants.kRotationalSlewRate);
   private double m_prevTime = WPIUtilJNI.now() * 1e-6;
 
-
-
   // Odometry class for tracking robot pose
-  SwerveDriveOdometry m_odometry = new SwerveDriveOdometry(
-      DriveConstants.kDriveKinematics,
-      Rotation2d.fromDegrees(-m_gyro.getAngle()),
-      new SwerveModulePosition[] {
-          m_frontLeft.getPosition(),
-          m_frontRight.getPosition(),
-          m_rearLeft.getPosition(),
-          m_rearRight.getPosition()
-      });
+  SwerveDrivePoseEstimator m_odometry = new SwerveDrivePoseEstimator(
+    DriveConstants.kDriveKinematics,
+    Rotation2d.fromDegrees(-m_gyro.getAngle()),
+    new SwerveModulePosition[] {
+      m_frontLeft.getPosition(),
+      m_frontRight.getPosition(),
+      m_rearLeft.getPosition(),
+      m_rearRight.getPosition()},
+      new Pose2d(),
+      VecBuilder.fill(0.01, 0.01, 0.01),
+      VecBuilder.fill(0.9, 0.9, 0.9)      
+  );
 
-    private boolean drveSfty = true;
-
-    GenericEntry driveSafety = Shuffleboard.getTab("Safeties").add("Drive Safety", true).withWidget(BuiltInWidgets.kToggleSwitch).getEntry();
-
-    GenericEntry gyroAngle = Shuffleboard.getTab("Drive").add("Gyro Angle", -m_gyro.getAngle()).getEntry();
-    GenericEntry poseAngle = Shuffleboard.getTab("Drive").add("Pose Angle", getHeading()).getEntry();
-    GenericEntry frontLeftPos = Shuffleboard.getTab("Drive").add("Front Left", m_frontLeft.getPosition().angle.getDegrees()).getEntry();
-    GenericEntry yaw = Shuffleboard.getTab("Drive").add("Yaw", m_gyro.getYaw()).getEntry();
-    GenericEntry pitch = Shuffleboard.getTab("Drive").add("Pitch Angle", m_gyro.getPitch()).getEntry();
-    GenericEntry poseX =  Shuffleboard.getTab("Drive").add("Pose X", m_odometry.getPoseMeters().getX()).getEntry();
-    GenericEntry poseY =  Shuffleboard.getTab("Drive").add("Pose Y", m_odometry.getPoseMeters().getY()).getEntry();
-    GenericEntry poseRotation =  Shuffleboard.getTab("Drive").add("Pose Rotation", m_odometry.getPoseMeters().getRotation().getDegrees()).getEntry();
+  private final Field2d m_field = new Field2d();
     
-    //GenericEntry counter =  Shuffleboard.getTab("Drive").add("Counter", m_counter).getEntry();
+  
+  private boolean drveSfty = true;
+
+  GenericEntry driveSafety = Shuffleboard.getTab("Safeties").add("Drive Safety", true).withWidget(BuiltInWidgets.kToggleSwitch).getEntry();
+  GenericEntry gyroAngle = Shuffleboard.getTab("Drive").add("Gyro Angle", -m_gyro.getAngle()).getEntry();
+  GenericEntry poseAngle = Shuffleboard.getTab("Drive").add("Pose Angle", getHeading()).getEntry();
+  GenericEntry frontLeftPos = Shuffleboard.getTab("Drive").add("Front Left", m_frontLeft.getPosition().angle.getDegrees()).getEntry();
+  GenericEntry yaw = Shuffleboard.getTab("Drive").add("Yaw", m_gyro.getYaw()).getEntry();
+  GenericEntry pitch = Shuffleboard.getTab("Drive").add("Pitch Angle", m_gyro.getPitch()).getEntry();
+  GenericEntry poseX = Shuffleboard.getTab("Drive").add("Pose X", m_odometry.getEstimatedPosition().getX()).getEntry();
+  GenericEntry poseY = Shuffleboard.getTab("Drive").add("Pose Y", m_odometry.getEstimatedPosition().getY()).getEntry();
+  GenericEntry poseRotation =  Shuffleboard.getTab("Drive").add("Pose Rotation", m_odometry.getEstimatedPosition().getRotation().getDegrees()).getEntry();
+  //GenericEntry counter =  Shuffleboard.getTab("Drive").add("Counter", m_counter).getEntry();
       
 
   /** Creates a new DriveSubsystem. */
@@ -132,6 +146,8 @@ public class DriveSubsystem extends SubsystemBase {
       },
       this // Reference to this subsystem to set requirements
     );
+
+    SmartDashboard.putData("Field", m_field);
   }
 
   @Override
@@ -149,18 +165,29 @@ public class DriveSubsystem extends SubsystemBase {
             m_rearRight.getPosition()
         });
 
+    m_field.setRobotPose(m_odometry.getEstimatedPosition());
+
     drveSfty = driveSafety.getBoolean(true);
     
     gyroAngle.setDouble(-m_gyro.getAngle());
     poseAngle.setDouble(getHeading());
     frontLeftPos.setDouble(m_frontLeft.getPosition().angle.getDegrees());
     yaw.setDouble(m_gyro.getYaw());
+
+    pitch.setDouble(m_gyro.getPitch());
+    poseX.setDouble(m_odometry.getEstimatedPosition().getX());
+    poseY.setDouble(m_odometry.getEstimatedPosition().getY()); 
+    poseRotation.setDouble(m_odometry.getEstimatedPosition().getRotation().getDegrees());
+
     pitch.setDouble(m_gyro.getPitch()); 
     
-    SmartDashboard.putNumber("position x", m_odometry.getPoseMeters().getX());
-    SmartDashboard.putNumber("position y", m_odometry.getPoseMeters().getY());
+    SmartDashboard.putNumber("position x", m_odometry.getEstimatedPosition().getX());
+    SmartDashboard.putNumber("position y", m_odometry.getEstimatedPosition().getY());
+
     
   }
+
+  
 
   /**
    * Returns the currently-estimated pose of the robot.
@@ -168,7 +195,7 @@ public class DriveSubsystem extends SubsystemBase {
    * @return The pose.
    */
   public Pose2d getPose() {
-    return m_odometry.getPoseMeters();
+    return m_odometry.getEstimatedPosition();
   }
 
   /**
@@ -188,6 +215,11 @@ public class DriveSubsystem extends SubsystemBase {
         pose);
     m_gyro.reset();
     
+  }
+
+  public void resetDrive() {
+    resetGyro();
+    resetPose(new Pose2d(m_odometry.getEstimatedPosition().getTranslation(),new Rotation2d()));
   }
 
   public ChassisSpeeds getRobotRelativeSpeeds() {
@@ -219,7 +251,7 @@ public class DriveSubsystem extends SubsystemBase {
    *                      field.
    * @param gyroStability Whether or not to use the gyrostabilization.
    */
-  public void drive(double xSpeed, double ySpeed, double rot, boolean fieldRelative, boolean rateLimit, boolean gyroStability) {
+  public void drive(double xSpeed, double ySpeed, double rot, boolean fieldRelative, boolean rateLimit) {
 
     
 
@@ -289,16 +321,6 @@ public class DriveSubsystem extends SubsystemBase {
       }
       
       rotatingBuffer++;
-
-      if (gyroStability == true){
-
-        if (-m_gyro.getAngle() > (5 + robotAngle)){
-          m_currentRotation += -0.1;
-        } else if (-m_gyro.getAngle() < (robotAngle - 5)){
-          m_currentRotation += 0.1;
-        }
-
-      }
   
       // Convert the commanded speeds into the correct units for the drivetrain
       xSpeedDelivered = xSpeedCommanded * DriveConstants.kMaxSpeedMetersPerSecond;
@@ -335,19 +357,6 @@ public class DriveSubsystem extends SubsystemBase {
     m_rearLeft.setDesiredState(moduleStates[2]);
     m_rearRight.setDesiredState(moduleStates[3]);
 
-  }
-
-    /**
-   * Method to drive the robot using joystick info.
-   *
-   * @param xSpeed        Speed of the robot in the x direction (forward).
-   * @param ySpeed        Speed of the robot in the y direction (sideways).
-   * @param rot           Angular rate of the robot.
-   * @param fieldRelative Whether the provided x and y speeds are relative to the
-   *                      field.
-   */
-  public void drive(double xSpeed, double ySpeed, double rot, boolean fieldRelative, boolean rateLimit) {
-      drive(xSpeed, ySpeed, rot, fieldRelative, rateLimit, false);
   }
 
   /**
@@ -412,4 +421,13 @@ public class DriveSubsystem extends SubsystemBase {
   public double getTurnRate() {
     return m_gyro.getRate() * (DriveConstants.kGyroReversed ? -1.0 : 1.0);
   }
+
+  public void addVisionPoseEstimate(Pose2d pose, double timestamp) {
+    m_odometry.addVisionMeasurement(pose, timestamp);
+  }
+
+  public void addVisionPoseEstimate(Pose2d pose, double timestamp, Matrix<N3, N1> stdDevs) {
+    m_odometry.addVisionMeasurement(pose, timestamp, stdDevs);
+  }
+
 }
