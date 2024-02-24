@@ -7,6 +7,7 @@ import org.photonvision.targeting.PhotonPipelineResult;
 import com.revrobotics.AbsoluteEncoder;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
+import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.SparkAbsoluteEncoder.Type;
 
@@ -30,6 +31,8 @@ public class ShooterSubsystem extends SubsystemBase{
 
     public ShooterSubsystem() {
         m_LeftShooterMoter = new CANSparkMax(ShooterConstants.kLeftMotorCANId, MotorType.kBrushless);
+        m_LeftShooterMoter.setIdleMode(IdleMode.kCoast);
+        m_LeftShooterMoter.burnFlash();
         m_RightShooterMoter = new CANSparkMax(ShooterConstants.kRightMotorCANId, MotorType.kBrushless);
         m_PitchSparkMax = new CANSparkMax(ShooterConstants.kPitchMotorCANId, MotorType.kBrushless);
         m_LeftEncoder = m_LeftShooterMoter.getEncoder();
@@ -64,25 +67,17 @@ public class ShooterSubsystem extends SubsystemBase{
     public void periodic() {
         SmartDashboard.putNumber("Left RPM", getLeftRPM());
 
+        SmartDashboard.putString("Shooter Command", getCommandName());
 
     }
     //SparkMAX -> Relative Encoder -> RPM -> PID -> Motor
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    public String getCommandName() {
+        if(getCurrentCommand()!=null){
+            return getCurrentCommand().getName();
+        }
+        return "None";
+    }
 
 
 }

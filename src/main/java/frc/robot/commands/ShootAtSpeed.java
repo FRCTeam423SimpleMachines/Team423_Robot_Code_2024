@@ -16,8 +16,8 @@ public class ShootAtSpeed extends Command {
   @SuppressWarnings({"PMD.UnusedPrivateField", "PMD.SingularField"})
   private final ShooterSubsystem m_ShooterSubsystem;
   private double RPM;
-  private PIDController speedController = new PIDController(1.0, 0.0, 0.0);
-  private SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(0.0, 0.0);
+  private PIDController speedController = new PIDController(0.01, 0.0, 0.0);
+  private SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(0.0, 0.165);
 
   /**
    * Creates a new ExampleCommand.
@@ -35,15 +35,17 @@ public class ShootAtSpeed extends Command {
   @Override
   public void initialize() {
     speedController.setSetpoint(RPM);
+    speedController.setTolerance(10);
+
   }
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
     double measuredRPM = m_ShooterSubsystem.getLeftRPM();
-    double leftDesiredVoltage = feedforward.calculate(RPM) + speedController.calculate(measuredRPM);
-    m_ShooterSubsystem.setShooterVolt(leftDesiredVoltage, 0.0);
+    double leftDesiredPower = (feedforward.calculate(RPM) + speedController.calculate(measuredRPM))/1000;
+    m_ShooterSubsystem.runShooter(leftDesiredPower, 0.0);
 
-    SmartDashboard.putNumber("DesiredVoltage", leftDesiredVoltage);
+    SmartDashboard.putNumber("Desired Power", leftDesiredPower);
   }
 }
