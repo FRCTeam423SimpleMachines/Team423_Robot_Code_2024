@@ -2,13 +2,13 @@ package frc.robot.commands;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.DriveSubsystem;
-import frc.robot.subsystems.ShooterSubsystem;
+import frc.robot.subsystems.ShooterIntakeSubsystem;
 
 public class ShooterIdle extends Command{
     
-    ShooterSubsystem m_shooter;
+    ShooterIntakeSubsystem m_shooter;
 
-    public ShooterIdle(ShooterSubsystem shooter) {
+    public ShooterIdle(ShooterIntakeSubsystem shooter) {
         m_shooter = shooter;
         addRequirements(shooter);
     }

@@ -5,7 +5,7 @@
 package frc.robot.commands;
 
 import frc.robot.subsystems.ExampleSubsystem;
-import frc.robot.subsystems.ShooterSubsystem;
+import frc.robot.subsystems.ShooterIntakeSubsystem;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -14,7 +14,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 /** An example command that uses an example subsystem. */
 public class ShootAtSpeed extends Command {
   @SuppressWarnings({"PMD.UnusedPrivateField", "PMD.SingularField"})
-  private final ShooterSubsystem m_ShooterSubsystem;
+  private final ShooterIntakeSubsystem m_ShooterSubsystem;
   private double RPM;
   private PIDController leftSpeedController = new PIDController(0.01, 0.0, 0.0);
   private SimpleMotorFeedforward leftFeedforward = new SimpleMotorFeedforward(0.0, 0.165);
@@ -26,7 +26,7 @@ public class ShootAtSpeed extends Command {
    *
    * @param subsystem The subsystem used by this command.
    */
-  public ShootAtSpeed(ShooterSubsystem shooter, double speed) {
+  public ShootAtSpeed(ShooterIntakeSubsystem shooter, double speed) {
     m_ShooterSubsystem = shooter;
     RPM = speed;
     // Use addRequirements() here to declare subsystem dependencies.

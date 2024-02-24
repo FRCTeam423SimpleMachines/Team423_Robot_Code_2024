@@ -80,7 +80,7 @@ public final class Constants {
     public static final double kMagnitudeSlewRate = 1.8; // percent per second (1 = 100%)
     public static final double kRotationalSlewRate = 2.0; // percent per second (1 = 100%)
 
-    public static final double kDriveBaseWidth = 24; //inches
+    public static final double kDriveBaseWidth = 28; //inches
     public static final double kDriveBaseLength = 30; //inches
 
     public static final double kDistToWheelCenters = 1.5; //inches
