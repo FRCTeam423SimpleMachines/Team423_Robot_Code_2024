@@ -31,8 +31,6 @@ public class ShooterSubsystem extends SubsystemBase{
 
     public ShooterSubsystem() {
         m_LeftShooterMoter = new CANSparkMax(ShooterConstants.kLeftMotorCANId, MotorType.kBrushless);
-        m_LeftShooterMoter.setIdleMode(IdleMode.kCoast);
-        m_LeftShooterMoter.burnFlash();
         m_RightShooterMoter = new CANSparkMax(ShooterConstants.kRightMotorCANId, MotorType.kBrushless);
         m_PitchSparkMax = new CANSparkMax(ShooterConstants.kPitchMotorCANId, MotorType.kBrushless);
         m_LeftEncoder = m_LeftShooterMoter.getEncoder();
@@ -66,7 +64,7 @@ public class ShooterSubsystem extends SubsystemBase{
     @Override
     public void periodic() {
         SmartDashboard.putNumber("Left RPM", getLeftRPM());
-
+        SmartDashboard.putNumber("Right RPM", getRightRPM());
         SmartDashboard.putString("Shooter Command", getCommandName());
 
     }

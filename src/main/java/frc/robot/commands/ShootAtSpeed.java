@@ -16,8 +16,10 @@ public class ShootAtSpeed extends Command {
   @SuppressWarnings({"PMD.UnusedPrivateField", "PMD.SingularField"})
   private final ShooterSubsystem m_ShooterSubsystem;
   private double RPM;
-  private PIDController speedController = new PIDController(0.01, 0.0, 0.0);
-  private SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(0.0, 0.165);
+  private PIDController leftSpeedController = new PIDController(0.01, 0.0, 0.0);
+  private SimpleMotorFeedforward leftFeedforward = new SimpleMotorFeedforward(0.0, 0.165);
+  private PIDController rightSpeedController = new PIDController(0.00000000, 0.0, 0.0);
+  private SimpleMotorFeedforward rightFeedforward = new SimpleMotorFeedforward(0.0, 0.165);
 
   /**
    * Creates a new ExampleCommand.
@@ -34,18 +36,23 @@ public class ShootAtSpeed extends Command {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    speedController.setSetpoint(RPM);
-    speedController.setTolerance(10);
+    leftSpeedController.setSetpoint(RPM);
+    leftSpeedController.setTolerance(10);
+    rightSpeedController.setSetpoint(RPM);
+    rightSpeedController.setTolerance(10);
 
   }
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    double measuredRPM = m_ShooterSubsystem.getLeftRPM();
-    double leftDesiredPower = (feedforward.calculate(RPM) + speedController.calculate(measuredRPM))/1000;
-    m_ShooterSubsystem.runShooter(leftDesiredPower, 0.0);
+    double leftMeasuredRPM = m_ShooterSubsystem.getLeftRPM();
+    double rightMeasuredRPM = m_ShooterSubsystem.getRightRPM();
+    double leftDesiredPower = (leftFeedforward.calculate(RPM) + leftSpeedController.calculate(leftMeasuredRPM))/1000;
+    double rightDesiredPower = (rightFeedforward.calculate(RPM) + rightSpeedController.calculate(rightMeasuredRPM))/1000;
+    m_ShooterSubsystem.runShooter(leftDesiredPower, -rightDesiredPower);
 
-    SmartDashboard.putNumber("Desired Power", leftDesiredPower);
+    SmartDashboard.putNumber("Desired Power LEFT", leftDesiredPower);
+    SmartDashboard.putNumber("Desired Power RIhGT", rightDesiredPower);
   }
 }
