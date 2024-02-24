@@ -18,6 +18,9 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DoubleSolenoid;
+import edu.wpi.first.wpilibj.PneumaticsModuleType;
+
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide
@@ -51,10 +54,29 @@ public final class Constants {
     public static final int kBackButton = 7;
     public static final int kStartButton = 8;
     public static final int kLeftStickButton = 9;
-    public static final int kRoghtStickButton = 10;
+    public static final int kRightStickButton = 10;
 
     public static final int kControllerPort1 = 0;
     public static final int kControllerPort2 = 1;
+  }
+
+  public static final class ShooterConstants {
+    //SparkMax IDs for Shooter components
+    public static final int kLeftMotorCANId = 21;
+    public static final int kRightMotorCANId = 22;
+    public static final int kPitchMotorCANId = 23;
+  }
+
+  public static final class IntakeConstants {
+    //IDs for intake components
+    public static final int kIntakeMotorCANId = 24;
+    public static final int kSolenoidModuleId = 1;
+    public static final int kSolenoid1Open = 0;
+    public static final int kSolenoid1Close = 1;
+    public static final int kSolenoid2Open = 2;
+    public static final int kSolenoid2Close = 3;
+    //Solenoid module types
+    public static final PneumaticsModuleType kPneumaticsModuleType = PneumaticsModuleType.CTREPCM; 
   }
 
   public static final class DriveConstants {
