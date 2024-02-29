@@ -13,20 +13,28 @@ import com.revrobotics.SparkAbsoluteEncoder.Type;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.ShooterConstants;
+import frc.robot.Constants.IntakeConstants;
 
 public class ShooterIntakeSubsystem extends SubsystemBase{
     
     private final CANSparkMax m_LeftShooterMoter;
     private final CANSparkMax m_RightShooterMoter;
     private final CANSparkMax m_PitchSparkMax;
+    private final CANSparkMax m_SlideSparkMax;
+    private final CANSparkMax m_IntakeSparkMax;
     private final RelativeEncoder m_LeftEncoder;
     private final RelativeEncoder m_RightEncoder;
     private final DutyCycleEncoder m_PitchEncoder;
+    private final RelativeEncoder m_SlideEncoder;
+    private final RelativeEncoder m_IntakeEncoder;
     private final AbsoluteEncoder m_PitchAbsoluteEncoder;
+    private final DigitalInput sensorInput;
+    private final DigitalInput sensorInput2;
 
  
 
@@ -34,10 +42,17 @@ public class ShooterIntakeSubsystem extends SubsystemBase{
         m_LeftShooterMoter = new CANSparkMax(ShooterConstants.kLeftMotorCANId, MotorType.kBrushless);
         m_RightShooterMoter = new CANSparkMax(ShooterConstants.kRightMotorCANId, MotorType.kBrushless);
         m_PitchSparkMax = new CANSparkMax(ShooterConstants.kPitchMotorCANId, MotorType.kBrushless);
+        m_SlideSparkMax = new CANSparkMax(ShooterConstants.kSlideMotorCANId, MotorType.kBrushless);
+        m_IntakeSparkMax = new CANSparkMax(IntakeConstants.kIntakeMotorCANId, MotorType.kBrushless);
         m_LeftEncoder = m_LeftShooterMoter.getEncoder();
         m_RightEncoder = m_RightShooterMoter.getEncoder();
-        m_PitchEncoder = new DutyCycleEncoder(0);
+        m_PitchEncoder = new DutyCycleEncoder(ShooterConstants.kPitchEncoderChannel);
+        m_SlideEncoder = m_SlideSparkMax.getEncoder();
         m_PitchAbsoluteEncoder = m_PitchSparkMax.getAbsoluteEncoder(Type.kDutyCycle);
+        m_IntakeEncoder = m_IntakeSparkMax.getEncoder();
+        sensorInput = new DigitalInput(IntakeConstants.kDIOInputID1);
+        sensorInput2 = new DigitalInput(IntakeConstants.kDIOInputID2);
+        
     }
 
     public void runShooter(double lSpeed, double rSpeed) {
@@ -54,6 +69,18 @@ public class ShooterIntakeSubsystem extends SubsystemBase{
         m_PitchSparkMax.set(speed);
     }
 
+    public void setSlideSpeed(double speed) {
+        m_SlideSparkMax.set(speed);
+    }
+
+    public void setIntakeSpeed(double speed) {
+        m_IntakeSparkMax.set(speed);
+    }
+
+    public double getIntake() {
+        return m_IntakeEncoder.getVelocity();
+    }
+
     public double getLeftRPM() {
         return m_LeftEncoder.getVelocity();
     }
@@ -64,6 +91,10 @@ public class ShooterIntakeSubsystem extends SubsystemBase{
 
     public double getPitch() {
         return m_PitchEncoder.getAbsolutePosition();
+    }
+
+    public double getSlide() {
+        return m_SlideEncoder.getPosition();
     }
 
     @Override
@@ -81,6 +112,4 @@ public class ShooterIntakeSubsystem extends SubsystemBase{
         }
         return "None";
     }
-
-
 }

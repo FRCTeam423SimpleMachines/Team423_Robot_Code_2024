@@ -7,6 +7,7 @@ package frc.robot;
 import frc.robot.commands.DoNothingAuton;
 import frc.robot.commands.ShootAtSpeed;
 import frc.robot.commands.visionAim.TagShift;
+import frc.robot.subsystems.ClimbSubsystem;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.ExampleSubsystem;
 import frc.robot.subsystems.ShooterIntakeSubsystem;
@@ -39,6 +40,7 @@ public class RobotContainer {
   private final DriveSubsystem m_DriveSubsystem = new DriveSubsystem();
   private final VisionSubsystem m_VisionSubsystem = new VisionSubsystem(m_DriveSubsystem);
   private final ShooterIntakeSubsystem m_ShooterSubsystem = new ShooterIntakeSubsystem();
+  private final ClimbSubsystem m_Climb = new ClimbSubsystem(); 
 
   private final CommandJoystick m_driverController1 = new CommandJoystick(ControlConstants.kControllerPort1); 
   private final CommandJoystick m_driverController2 = new CommandJoystick(ControlConstants.kControllerPort2); 
@@ -65,6 +67,8 @@ public class RobotContainer {
           true, true), m_DriveSubsystem));
 
     m_ShooterSubsystem.setDefaultCommand(new RunCommand( () -> m_ShooterSubsystem.runShooter(0,0), m_ShooterSubsystem));
+
+    m_Climb.setDefaultCommand(new RunCommand( () -> m_Climb.runClimb(m_driverController2.getRawAxis(ControlConstants.kLeftYAxis)), m_Climb));
   }
 
   /**
@@ -104,6 +108,8 @@ public class RobotContainer {
 
     bButton2.whileTrue(new RunCommand( () -> m_ShooterSubsystem.runShooter(1,1), m_ShooterSubsystem));
 
+    yButton2.whileTrue(new RunCommand( () -> m_ShooterSubsystem.setIntakeSpeed(-1), m_ShooterSubsystem));
+
     rBumper1.whileTrue(
       new RunCommand(
         () -> m_DriveSubsystem.drive(
@@ -112,7 +118,7 @@ public class RobotContainer {
           -(MathUtil.applyDeadband(m_driverController1.getRawAxis(Constants.ControlConstants.kRightXAxis), 0.15)),
           true, true), m_DriveSubsystem));
 
-  
+    
 
 
     
