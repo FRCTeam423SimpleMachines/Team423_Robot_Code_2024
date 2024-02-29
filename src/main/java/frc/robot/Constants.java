@@ -56,17 +56,22 @@ public final class Constants {
     //SparkMax IDs for Shooter components
     public static final int kLeftMotorCANId = 21;
     public static final int kRightMotorCANId = 22;
-    public static final int kPitchMotorCANId = 23;
+    public static final int kPitchMotorCANId = 24;
+    public static final int kSlideMotorCANId = 25;
+    //Preset positions for slide
+    public static final int kSlideDownPosition = 5;
+    public static final int kSlideMidPosition = 10;
+    public static final int kSlideUpPosition = 20;
+    //Encoder ID
+    public static final int kPitchEncoderChannel = 0;
   }
 
   public static final class IntakeConstants {
     //IDs for intake components
-    public static final int kIntakeMotorCANId = 24;
+    public static final int kIntakeMotorCANId = 23;
     public static final int kSolenoidModuleId = 1;
-    public static final int kSolenoid1Open = 0;
-    public static final int kSolenoid1Close = 1;
-    public static final int kSolenoid2Open = 2;
-    public static final int kSolenoid2Close = 3;
+    public static final int kDIOInputID1 = 0;
+    public static final int kDIOInputID2 = 1;
     //Solenoid module types
     public static final PneumaticsModuleType kPneumaticsModuleType = PneumaticsModuleType.CTREPCM; 
   }
