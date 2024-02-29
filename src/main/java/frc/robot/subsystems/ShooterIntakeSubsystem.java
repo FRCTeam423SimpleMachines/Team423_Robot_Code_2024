@@ -55,9 +55,9 @@ public class ShooterIntakeSubsystem extends SubsystemBase{
         
     }
 
-    public void runShooter(double lSpeed, double rSpeed) {
-        m_LeftShooterMoter.set(lSpeed);
-        m_RightShooterMoter.set(rSpeed);
+    public void runShooter(double lpow, double rpow) {
+        m_LeftShooterMoter.set(lpow);
+        m_RightShooterMoter.set(lpow);
     }
 
     public void setShooterVolt(double lVoltage, double rVoltage ) {
@@ -65,16 +65,16 @@ public class ShooterIntakeSubsystem extends SubsystemBase{
         m_LeftShooterMoter.setVoltage(rVoltage);
     }
 
-    public void setPitchSpeed(double speed) {
-        m_PitchSparkMax.set(speed);
+    public void setPitch(double pow) {
+        m_PitchSparkMax.set(pow);
     }
 
-    public void setSlideSpeed(double speed) {
-        m_SlideSparkMax.set(speed);
+    public void setSlide(double pow) {
+        m_SlideSparkMax.set(pow);
     }
 
-    public void setIntakeSpeed(double speed) {
-        m_IntakeSparkMax.set(speed);
+    public void setIntake(double pow) {
+        m_IntakeSparkMax.set(pow);
     }
 
     public double getIntake() {

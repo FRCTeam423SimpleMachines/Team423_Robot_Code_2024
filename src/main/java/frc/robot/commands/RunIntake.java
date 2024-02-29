@@ -27,6 +27,6 @@ public class RunIntake extends Command {
     }
 
     public void execute() {
-        m_Intake.setIntakeSpeed(intakeFeedforward.calculate(speed) + intakeController.calculate(m_Intake.getIntake()));
+        m_Intake.setIntake(intakeFeedforward.calculate(speed) + intakeController.calculate(m_Intake.getIntake()));
     }
 }

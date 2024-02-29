@@ -21,7 +21,7 @@ public class ShooterIdle extends Command{
     @Override
     public void execute() {
         m_shooter.runShooter(0.0, 0.0);
-        m_shooter.setIntakeSpeed(0.0);
+        m_shooter.setIntake(0.0);
     }
 
     

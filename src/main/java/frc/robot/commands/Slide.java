@@ -24,7 +24,7 @@ public class Slide extends Command {
 
     @Override
     public void execute() {
-        m_shooter.setSlideSpeed(slideController.calculate(m_shooter.getSlide()));
+        m_shooter.setSlide(slideController.calculate(m_shooter.getSlide()));
     }
     
 }

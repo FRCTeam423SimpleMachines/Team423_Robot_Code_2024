@@ -5,6 +5,7 @@
 package frc.robot;
 
 import frc.robot.commands.DoNothingAuton;
+import frc.robot.commands.PivotToAngle;
 import frc.robot.commands.ShootAtSpeed;
 import frc.robot.commands.visionAim.TagShift;
 import frc.robot.subsystems.ClimbSubsystem;
@@ -83,6 +84,7 @@ public class RobotContainer {
   private void configureBindings() {
     
     //Button Onjects to asign bindings
+    Trigger aButton1 = m_driverController1.button(ControlConstants.kAButton);
     Trigger xButton1 = m_driverController1.button(ControlConstants.kXButton);
     Trigger rBumper1 = m_driverController1.button(ControlConstants.kRightBumper);
     Trigger yButton1 = m_driverController1.button(ControlConstants.kYButton);
@@ -91,6 +93,9 @@ public class RobotContainer {
     Trigger xButton2 = m_driverController2.button(ControlConstants.kXButton);
     Trigger aButton2 = m_driverController2.button(ControlConstants.kAButton);
     Trigger yButton2 = m_driverController2.button(ControlConstants.kYButton);
+
+    //aButton1.whileTrue(new PivotToAngle(m_ShooterSubsystem, 0));
+
 
 
     xButton1.whileTrue(
@@ -108,7 +113,7 @@ public class RobotContainer {
 
     bButton2.whileTrue(new RunCommand( () -> m_ShooterSubsystem.runShooter(1,1), m_ShooterSubsystem));
 
-    yButton2.whileTrue(new RunCommand( () -> m_ShooterSubsystem.setIntakeSpeed(-1), m_ShooterSubsystem));
+    yButton2.whileTrue(new RunCommand( () -> m_ShooterSubsystem.setIntake(-1), m_ShooterSubsystem));
 
     rBumper1.whileTrue(
       new RunCommand(
