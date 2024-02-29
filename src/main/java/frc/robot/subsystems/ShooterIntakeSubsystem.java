@@ -13,6 +13,7 @@ import com.revrobotics.SparkAbsoluteEncoder.Type;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.ShooterConstants;
@@ -24,7 +25,7 @@ public class ShooterIntakeSubsystem extends SubsystemBase{
     private final CANSparkMax m_PitchSparkMax;
     private final RelativeEncoder m_LeftEncoder;
     private final RelativeEncoder m_RightEncoder;
-    private final RelativeEncoder m_PitchEncoder;
+    private final DutyCycleEncoder m_PitchEncoder;
     private final AbsoluteEncoder m_PitchAbsoluteEncoder;
 
  
@@ -35,7 +36,7 @@ public class ShooterIntakeSubsystem extends SubsystemBase{
         m_PitchSparkMax = new CANSparkMax(ShooterConstants.kPitchMotorCANId, MotorType.kBrushless);
         m_LeftEncoder = m_LeftShooterMoter.getEncoder();
         m_RightEncoder = m_RightShooterMoter.getEncoder();
-        m_PitchEncoder = m_PitchSparkMax.getEncoder();
+        m_PitchEncoder = new DutyCycleEncoder(0);
         m_PitchAbsoluteEncoder = m_PitchSparkMax.getAbsoluteEncoder(Type.kDutyCycle);
     }
 
@@ -61,12 +62,16 @@ public class ShooterIntakeSubsystem extends SubsystemBase{
         return m_RightEncoder.getVelocity();
     }
 
+    public double getPitch() {
+        return m_PitchEncoder.getAbsolutePosition();
+    }
+
     @Override
     public void periodic() {
         SmartDashboard.putNumber("Left RPM", getLeftRPM());
         SmartDashboard.putNumber("Right RPM", getRightRPM());
         SmartDashboard.putString("Shooter Command", getCommandName());
-
+        SmartDashboard.putNumber("Pivot Angle", getPitch());
     }
     //SparkMAX -> Relative Encoder -> RPM -> PID -> Motor
 
