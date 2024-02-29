@@ -102,7 +102,7 @@ public class RobotContainer {
 
     aButton2.whileTrue(new ShootAtSpeed(m_ShooterSubsystem, 4000));
 
-    bButton2.whileTrue(new RunCommand( () -> m_ShooterSubsystem.runShooter(1,0), m_ShooterSubsystem));
+    bButton2.whileTrue(new RunCommand( () -> m_ShooterSubsystem.runShooter(1,1), m_ShooterSubsystem));
 
     rBumper1.whileTrue(
       new RunCommand(
