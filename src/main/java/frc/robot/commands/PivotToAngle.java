@@ -25,7 +25,7 @@ public class PivotToAngle extends Command{
 
     @Override
     public void execute() {
-        m_shooter.setIntake(pivotController.calculate(m_shooter.getPitch()));
+        m_shooter.setIntake(pivotController.calculate(m_shooter.getPitchDegrees()));
     }
 
     @Override

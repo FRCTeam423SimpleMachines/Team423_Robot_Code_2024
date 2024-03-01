@@ -32,7 +32,7 @@ public class ShooterIntakeSubsystem extends SubsystemBase{
     private final DutyCycleEncoder m_PitchEncoder;
     private final RelativeEncoder m_SlideEncoder;
     private final RelativeEncoder m_IntakeEncoder;
-    private final AbsoluteEncoder m_PitchAbsoluteEncoder;
+    //private final AbsoluteEncoder m_PitchAbsoluteEncoder;
     private final DigitalInput sensorInput;
     private final DigitalInput sensorInput2;
 
@@ -46,9 +46,9 @@ public class ShooterIntakeSubsystem extends SubsystemBase{
         m_IntakeSparkMax = new CANSparkMax(IntakeConstants.kIntakeMotorCANId, MotorType.kBrushless);
         m_LeftEncoder = m_LeftShooterMoter.getEncoder();
         m_RightEncoder = m_RightShooterMoter.getEncoder();
-        m_PitchEncoder = new DutyCycleEncoder(ShooterConstants.kPitchEncoderChannel);
+        m_PitchEncoder = new DutyCycleEncoder(3);
         m_SlideEncoder = m_SlideSparkMax.getEncoder();
-        m_PitchAbsoluteEncoder = m_PitchSparkMax.getAbsoluteEncoder(Type.kDutyCycle);
+        //m_PitchAbsoluteEncoder = m_PitchSparkMax.getAbsoluteEncoder(Type.kDutyCycle);
         m_IntakeEncoder = m_IntakeSparkMax.getEncoder();
         sensorInput = new DigitalInput(IntakeConstants.kDIOInputID1);
         sensorInput2 = new DigitalInput(IntakeConstants.kDIOInputID2);
@@ -89,8 +89,8 @@ public class ShooterIntakeSubsystem extends SubsystemBase{
         return m_RightEncoder.getVelocity();
     }
 
-    public double getPitch() {
-        return m_PitchEncoder.getAbsolutePosition();
+    public double getPitchDegrees() {
+        return m_PitchEncoder.getAbsolutePosition()*360;
     }
 
     public double getSlide() {
@@ -102,7 +102,7 @@ public class ShooterIntakeSubsystem extends SubsystemBase{
         SmartDashboard.putNumber("Left RPM", getLeftRPM());
         SmartDashboard.putNumber("Right RPM", getRightRPM());
         SmartDashboard.putString("Shooter Command", getCommandName());
-        SmartDashboard.putNumber("Pivot Angle", getPitch());
+        SmartDashboard.putNumber("Pivot Angle", getPitchDegrees());
     }
     //SparkMAX -> Relative Encoder -> RPM -> PID -> Motor
 
