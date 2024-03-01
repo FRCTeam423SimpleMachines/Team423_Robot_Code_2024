@@ -64,10 +64,6 @@ public class DriveSubsystem extends SubsystemBase {
   // The gyro sensor
   private final AHRS m_gyro = new AHRS(SPI.Port.kMXP, (byte)200);
 
-  private double robotAngle = 0;
-  private double rotatingBuffer = 0;
-  private boolean rotating = false;
-
   private double xSpeedDelivered; 
   private double ySpeedDelivered; 
   private double rotDelivered;
@@ -146,9 +142,6 @@ public class DriveSubsystem extends SubsystemBase {
   @Override
   public void periodic() {
     // Update the odometry in the periodic block
-    if (rotating){
-      robotAngle = -m_gyro.getAngle();
-    }
     m_odometry.update(
         Rotation2d.fromDegrees(-m_gyro.getAngle()),
         new SwerveModulePosition[] {
@@ -231,7 +224,6 @@ public class DriveSubsystem extends SubsystemBase {
    */
   public void resetGyro(){
     m_gyro.reset();
-    robotAngle = 0;
   }
 
   /**
@@ -300,20 +292,7 @@ public class DriveSubsystem extends SubsystemBase {
         ySpeedCommanded = ySpeed;
         m_currentRotation = rot;
       }
-
-      if (rotating){
-        robotAngle = -m_gyro.getAngle();
-      }
-
-      if (rot > Math.pow(0.5*0.3, 2) || rot < -Math.pow(0.5*0.3, 2)){
-        rotating = true;
-        robotAngle = -m_gyro.getAngle();
-        rotatingBuffer = 0;
-      } if (rotatingBuffer > 10) {
-        rotating = false;
-      }
       
-      rotatingBuffer++;
   
       // Convert the commanded speeds into the correct units for the drivetrain
       xSpeedDelivered = xSpeedCommanded * DriveConstants.kMaxSpeedMetersPerSecond;
@@ -330,10 +309,6 @@ public class DriveSubsystem extends SubsystemBase {
       m_frontRight.setDesiredState(swerveModuleStates[1]);
       m_rearLeft.setDesiredState(swerveModuleStates[2]);
       m_rearRight.setDesiredState(swerveModuleStates[3]);
-
-      if (rotating){
-        robotAngle = -m_gyro.getAngle();
-      }
 
     }
   }

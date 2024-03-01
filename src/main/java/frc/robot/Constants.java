@@ -71,6 +71,10 @@ public final class Constants {
     public static final int kPitchEncoderChannel = 0;
   }
 
+  public static final class ClimbConstants {
+    public static final int kClimbMotoCANId = 19;
+  }
+
   public static final class IntakeConstants {
     //IDs for intake components
     public static final int kIntakeMotorCANId = 23;
