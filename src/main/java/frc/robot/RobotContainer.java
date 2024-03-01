@@ -4,16 +4,19 @@
 
 package frc.robot;
 
-
-import frc.robot.commands.Autos;
 import frc.robot.commands.DoNothingAuton;
 import frc.robot.commands.ExampleCommand;
 import frc.robot.commands.visionAim.AimAtPose;
 import frc.robot.commands.visionAim.AimAtSpeaker;
 import frc.robot.commands.visionAim.TagAlign;
+import frc.robot.commands.PivotToAngle;
+import frc.robot.commands.RunIntake;
+import frc.robot.commands.ShootAtSpeed;
 import frc.robot.commands.visionAim.TagShift;
+import frc.robot.subsystems.ClimbSubsystem;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.ExampleSubsystem;
+import frc.robot.subsystems.ShooterIntakeSubsystem;
 import frc.robot.subsystems.VisionSubsystem;
 
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -42,9 +45,10 @@ import frc.robot.Constants.FieldConstants;
  */
 public class RobotContainer {
   // The robot's subsystems and commands are defined here...
-  private final ExampleSubsystem m_exampleSubsystem = new ExampleSubsystem();
   private final DriveSubsystem m_DriveSubsystem = new DriveSubsystem();
   private final VisionSubsystem m_VisionSubsystem = new VisionSubsystem(m_DriveSubsystem);
+  private final ShooterIntakeSubsystem m_ShooterSubsystem = new ShooterIntakeSubsystem();
+  private final ClimbSubsystem m_Climb = new ClimbSubsystem(); 
 
   private final CommandJoystick m_driverController1 = new CommandJoystick(ControlConstants.kControllerPort1); 
   private final CommandJoystick m_driverController2 = new CommandJoystick(ControlConstants.kControllerPort2); 
@@ -77,6 +81,10 @@ public class RobotContainer {
           -0.5*slewX.calculate(MathUtil.applyDeadband(m_driverController1.getRawAxis(Constants.ControlConstants.kLeftXAxis), 0.15)) ,
           -0.5*(MathUtil.applyDeadband(m_driverController1.getRawAxis(Constants.ControlConstants.kRightXAxis), 0.15)),
           true, true), m_DriveSubsystem));
+
+    m_ShooterSubsystem.setDefaultCommand(new RunCommand( () -> m_ShooterSubsystem.runShooter(0,0), m_ShooterSubsystem));
+
+    m_Climb.setDefaultCommand(new RunCommand( () -> m_Climb.runClimb(m_driverController2.getRawAxis(ControlConstants.kLeftYAxis)), m_Climb));
   }
 
   /**
@@ -89,20 +97,22 @@ public class RobotContainer {
    * joysticks}.
    */
   private void configureBindings() {
-    // Schedule `ExampleCommand` when `exampleCondition` changes to `true`
-    new Trigger(m_exampleSubsystem::exampleCondition)
-        .onTrue(new ExampleCommand(m_exampleSubsystem));
-
-    // Schedule `exampleMethodCommand` when the Xbox controller's B button is pressed,
-    // cancelling on release.
+    
+    //Button Onjects to asign bindings
+    Trigger aButton1 = m_driverController1.button(ControlConstants.kAButton);
     Trigger xButton1 = m_driverController1.button(ControlConstants.kXButton);
     Trigger rBumper1 = m_driverController1.button(ControlConstants.kRightBumper);
-    Trigger aButton1 = m_driverController1.button(ControlConstants.kAButton);
 
     Trigger yButton1 = m_driverController1.button(ControlConstants.kYButton);
 
     Trigger bButton2 = m_driverController2.button(ControlConstants.kBButton);
     Trigger xButton2 = m_driverController2.button(ControlConstants.kXButton);
+    Trigger aButton2 = m_driverController2.button(ControlConstants.kAButton);
+    Trigger yButton2 = m_driverController2.button(ControlConstants.kYButton);
+    Trigger lBumper2 = m_driverController2.button(ControlConstants.kLeftBumper);
+
+    aButton1.whileTrue(new PivotToAngle(m_ShooterSubsystem, 0));
+
 
 
     xButton1.whileTrue(
@@ -116,12 +126,19 @@ public class RobotContainer {
         () -> m_DriveSubsystem.resetDrive(),
         m_DriveSubsystem));
 
-    aButton1.onTrue(
-      new AimAtSpeaker(m_VisionSubsystem, m_DriveSubsystem));
+    aButton1.onTrue(new AimAtSpeaker(m_VisionSubsystem, m_DriveSubsystem));
+
+    aButton2.whileTrue(new ShootAtSpeed(m_ShooterSubsystem, 4000));
+
+    bButton2.whileTrue(new RunCommand( () -> m_ShooterSubsystem.runShooter(1,1), m_ShooterSubsystem));
+
+    yButton2.whileTrue(new RunIntake(m_ShooterSubsystem, 1));
+
+    lBumper2.whileTrue(new RunIntake(m_ShooterSubsystem, -1));
 
     rBumper1.whileTrue(
       new RunCommand(
-        () -> m_DriveSubsystem.drive(
+        () -> m_DriveSubsystem.drive( 
           -slewY.calculate(MathUtil.applyDeadband(m_driverController1.getRawAxis(Constants.ControlConstants.kLeftYAxis), 0.15)) ,
           -slewX.calculate(MathUtil.applyDeadband(m_driverController1.getRawAxis(Constants.ControlConstants.kLeftXAxis), 0.15)) ,
           -(MathUtil.applyDeadband(m_driverController1.getRawAxis(Constants.ControlConstants.kRightXAxis), 0.15)),
@@ -145,6 +162,8 @@ public class RobotContainer {
     // An example command will be run in autonomous
     return m_chooser.getSelected();
   }
+
+  
 
   public double squareInput(double x){
     if (x > 0){

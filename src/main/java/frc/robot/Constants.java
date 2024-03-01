@@ -21,7 +21,6 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 
-
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide
  * numerical or boolean
@@ -64,19 +63,21 @@ public final class Constants {
     //SparkMax IDs for Shooter components
     public static final int kLeftMotorCANId = 21;
     public static final int kRightMotorCANId = 22;
-    public static final int kPitchMotorCANId = 23;
+    public static final int kPitchMotorCANId = 26;
+    public static final int kSlideMotorCANId = 25;
+    //Preset positions for slide
+    public static final int kSlideDownPosition = 5;
+    public static final int kSlideMidPosition = 10;
+    public static final int kSlideUpPosition = 20;
+    //Encoder ID
+    public static final int kPitchEncoderChannel = 0;
   }
 
   public static final class IntakeConstants {
     //IDs for intake components
-    public static final int kIntakeMotorCANId = 24;
-    public static final int kSolenoidModuleId = 1;
-    public static final int kSolenoid1Open = 0;
-    public static final int kSolenoid1Close = 1;
-    public static final int kSolenoid2Open = 2;
-    public static final int kSolenoid2Close = 3;
-    //Solenoid module types
-    public static final PneumaticsModuleType kPneumaticsModuleType = PneumaticsModuleType.CTREPCM; 
+    public static final int kIntakeMotorCANId = 23;
+    public static final int kDIOInputID1 = 0;
+    public static final int kDIOInputID2 = 1;
   }
 
   public static final class DriveConstants {
@@ -89,7 +90,7 @@ public final class Constants {
     public static final double kMagnitudeSlewRate = 1.8; // percent per second (1 = 100%)
     public static final double kRotationalSlewRate = 2.0; // percent per second (1 = 100%)
 
-    public static final double kDriveBaseWidth = 24; //inches
+    public static final double kDriveBaseWidth = 28; //inches
     public static final double kDriveBaseLength = 30; //inches
 
     public static final double kDistToWheelCenters = 1.5; //inches

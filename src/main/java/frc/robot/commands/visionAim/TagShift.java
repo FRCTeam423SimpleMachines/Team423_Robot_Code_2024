@@ -1,7 +1,23 @@
 package frc.robot.commands.visionAim;
 
 
+import java.lang.annotation.Target;
+import java.util.List;
 import java.util.function.BooleanSupplier;
+
+import org.opencv.photo.Photo;
+import org.photonvision.PhotonCamera;
+import org.photonvision.PhotonUtils;
+import org.photonvision.targeting.PhotonPipelineResult;
+import org.photonvision.targeting.PhotonTrackedTarget;
+
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
+import com.pathplanner.lib.commands.PathPlannerAuto;
+import com.pathplanner.lib.path.GoalEndState;
+import com.pathplanner.lib.path.PathConstraints;
+import com.pathplanner.lib.path.PathPlannerPath;
+import com.pathplanner.lib.path.PathPlannerTrajectory;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.networktables.GenericEntry;
@@ -48,14 +64,9 @@ public class TagShift extends Command{
 
     @Override
     public void initialize() {
-        strafeController.setTolerance(1);
-        strafeController.setSetpoint(0);
-
-
-        strafeSlewer.reset(0);
+        
+    }
     
-    } 
-
 
     
 
