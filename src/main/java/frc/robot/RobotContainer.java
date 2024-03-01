@@ -6,6 +6,7 @@ package frc.robot;
 
 import frc.robot.commands.DoNothingAuton;
 import frc.robot.commands.PivotToAngle;
+import frc.robot.commands.RunIntake;
 import frc.robot.commands.ShootAtSpeed;
 import frc.robot.commands.visionAim.TagShift;
 import frc.robot.subsystems.ClimbSubsystem;
@@ -37,7 +38,6 @@ import frc.robot.Constants.ControlConstants;
  */
 public class RobotContainer {
   // The robot's subsystems and commands are defined here...
-  private final ExampleSubsystem m_exampleSubsystem = new ExampleSubsystem();
   private final DriveSubsystem m_DriveSubsystem = new DriveSubsystem();
   private final VisionSubsystem m_VisionSubsystem = new VisionSubsystem(m_DriveSubsystem);
   private final ShooterIntakeSubsystem m_ShooterSubsystem = new ShooterIntakeSubsystem();
@@ -93,8 +93,9 @@ public class RobotContainer {
     Trigger xButton2 = m_driverController2.button(ControlConstants.kXButton);
     Trigger aButton2 = m_driverController2.button(ControlConstants.kAButton);
     Trigger yButton2 = m_driverController2.button(ControlConstants.kYButton);
+    Trigger lBumper2 = m_driverController2.button(ControlConstants.kLeftBumper);
 
-    //aButton1.whileTrue(new PivotToAngle(m_ShooterSubsystem, 0));
+    aButton1.whileTrue(new PivotToAngle(m_ShooterSubsystem, 0));
 
 
 
@@ -113,11 +114,13 @@ public class RobotContainer {
 
     bButton2.whileTrue(new RunCommand( () -> m_ShooterSubsystem.runShooter(1,1), m_ShooterSubsystem));
 
-    yButton2.whileTrue(new RunCommand( () -> m_ShooterSubsystem.setIntake(-1), m_ShooterSubsystem));
+    yButton2.whileTrue(new RunIntake(m_ShooterSubsystem, 1));
+
+    lBumper2.whileTrue(new RunIntake(m_ShooterSubsystem, -1));
 
     rBumper1.whileTrue(
       new RunCommand(
-        () -> m_DriveSubsystem.drive(
+        () -> m_DriveSubsystem.drive( 
           -slewY.calculate(MathUtil.applyDeadband(m_driverController1.getRawAxis(Constants.ControlConstants.kLeftYAxis), 0.15)) ,
           -slewX.calculate(MathUtil.applyDeadband(m_driverController1.getRawAxis(Constants.ControlConstants.kLeftXAxis), 0.15)) ,
           -(MathUtil.applyDeadband(m_driverController1.getRawAxis(Constants.ControlConstants.kRightXAxis), 0.15)),
