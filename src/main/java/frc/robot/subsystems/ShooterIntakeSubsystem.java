@@ -40,11 +40,9 @@ public class ShooterIntakeSubsystem extends SubsystemBase{
         m_RightEncoder = m_RightShooterMoter.getEncoder();
         m_PitchEncoder = new DutyCycleEncoder(3);
         m_SlideEncoder = m_SlideSparkMax.getEncoder();
-        //m_PitchAbsoluteEncoder = m_PitchSparkMax.getAbsoluteEncoder(Type.kDutyCycle);
         m_IntakeEncoder = m_IntakeSparkMax.getEncoder();
         sensorInput = new DigitalInput(IntakeConstants.kDIOInputID1);
-        sensorInput2 = new DigitalInput(IntakeConstants.kDIOInputID2);
-        
+        sensorInput2 = new DigitalInput(IntakeConstants.kDIOInputID2);   
     }
 
     public void runShooter(double lpow, double rpow) {
@@ -87,6 +85,14 @@ public class ShooterIntakeSubsystem extends SubsystemBase{
 
     public double getSlide() {
         return m_SlideEncoder.getPosition();
+    }
+
+    public boolean getOptic1() {
+        return sensorInput.get();
+    }
+
+    public boolean getOptic2() {
+        return sensorInput2.get();
     }
 
     @Override

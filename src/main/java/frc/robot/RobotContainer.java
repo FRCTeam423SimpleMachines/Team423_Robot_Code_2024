@@ -4,9 +4,6 @@
 
 package frc.robot;
 
-import frc.robot.commands.DoNothingAuton;
-import frc.robot.commands.ExampleCommand;
-import frc.robot.commands.visionAim.AimAtPose;
 import frc.robot.commands.visionAim.AimAtSpeaker;
 import frc.robot.commands.visionAim.TagAlign;
 import frc.robot.commands.PivotToAngle;
@@ -15,7 +12,6 @@ import frc.robot.commands.ShootAtSpeed;
 import frc.robot.commands.visionAim.TagShift;
 import frc.robot.subsystems.ClimbSubsystem;
 import frc.robot.subsystems.DriveSubsystem;
-import frc.robot.subsystems.ExampleSubsystem;
 import frc.robot.subsystems.ShooterIntakeSubsystem;
 import frc.robot.subsystems.VisionSubsystem;
 
@@ -24,18 +20,14 @@ import com.pathplanner.lib.auto.NamedCommands;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.SlewRateLimiter;
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.ControlConstants;
-import frc.robot.Constants.FieldConstants;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
