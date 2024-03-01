@@ -61,8 +61,8 @@ public final class Constants {
     //SparkMax IDs for Shooter components
     public static final int kLeftMotorCANId = 21;
     public static final int kRightMotorCANId = 22;
-    public static final int kPitchMotorCANId = 26;
-    public static final int kSlideMotorCANId = 25;
+    public static final int kPitchMotorCANId = 18;
+    public static final int kSlideMotorCANId = 30; //Currently non-exsistent
     //Preset positions for slide
     public static final int kSlideDownPosition = 5;
     public static final int kSlideMidPosition = 10;
