@@ -9,16 +9,12 @@ import frc.robot.commands.visionAim.TagAlign;
 import frc.robot.commands.EndShoot;
 import frc.robot.commands.LoadIntake;
 import frc.robot.commands.PivotToAngle;
-import frc.robot.commands.RunIntake;
 import frc.robot.commands.Shoot;
-import frc.robot.commands.ShootAtSpeed;
 import frc.robot.commands.visionAim.TagShift;
 import frc.robot.subsystems.ClimbSubsystem;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.ShooterIntakeSubsystem;
 import frc.robot.subsystems.VisionSubsystem;
-
-import java.util.function.BooleanSupplier;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
@@ -28,7 +24,6 @@ import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
@@ -119,7 +114,6 @@ public class RobotContainer {
     Trigger dPadLeft2 = m_driverController2.povLeft();
     Trigger dPadRight2 = m_driverController2.povRight();
 
-    // TODO add angle setpoints or die
     dPadUp2.onTrue(new PivotToAngle(m_ShooterSubsystem, 315).withInterruptBehavior(InterruptionBehavior.kCancelIncoming)); //Speaker/Amp
     dPadDown2.onTrue(new PivotToAngle(m_ShooterSubsystem, 325).withInterruptBehavior(InterruptionBehavior.kCancelIncoming)); // Mid-distance
     dPadLeft2.onTrue(new PivotToAngle(m_ShooterSubsystem, 305).withInterruptBehavior(InterruptionBehavior.kCancelIncoming)); //
