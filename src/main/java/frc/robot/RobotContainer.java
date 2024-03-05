@@ -6,14 +6,19 @@ package frc.robot;
 
 import frc.robot.commands.visionAim.AimAtSpeaker;
 import frc.robot.commands.visionAim.TagAlign;
+import frc.robot.commands.EndShoot;
+import frc.robot.commands.LoadIntake;
 import frc.robot.commands.PivotToAngle;
 import frc.robot.commands.RunIntake;
+import frc.robot.commands.Shoot;
 import frc.robot.commands.ShootAtSpeed;
 import frc.robot.commands.visionAim.TagShift;
 import frc.robot.subsystems.ClimbSubsystem;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.ShooterIntakeSubsystem;
 import frc.robot.subsystems.VisionSubsystem;
+
+import java.util.function.BooleanSupplier;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
@@ -23,7 +28,9 @@ import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.RunCommand;
+import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -56,7 +63,9 @@ public class RobotContainer {
 
     //Register named commads for pathplanner 
     NamedCommands.registerCommand("AimAtSpeaker", new AimAtSpeaker(m_VisionSubsystem, m_DriveSubsystem));
-    //NamedCommands.registerCommand("Shoot", new AimAndShoot()); //Whatever makes the shooter shoot and aim
+    NamedCommands.registerCommand("Pivot325", new PivotToAngle(m_ShooterSubsystem, 325));
+    NamedCommands.registerCommand("Shoot", new Shoot(m_ShooterSubsystem)); //Whatever makes the shooter shoot and aim
+    NamedCommands.registerCommand("EndShoot", new EndShoot(m_ShooterSubsystem));
     //NamedCommands.registerCommand("PickUpInit", new ParallelCommandGroup(null)); //Command group to set the robot up to pick up rings during auton
 
     m_chooser = AutoBuilder.buildAutoChooser();
@@ -94,6 +103,8 @@ public class RobotContainer {
     Trigger aButton1 = m_driverController1.button(ControlConstants.kAButton);
     Trigger xButton1 = m_driverController1.button(ControlConstants.kXButton);
     Trigger rBumper1 = m_driverController1.button(ControlConstants.kRightBumper);
+    Trigger lBumper1 = m_driverController1.button(ControlConstants.kLeftBumper);
+    Trigger bButton1 = m_driverController1.button(ControlConstants.kBButton);
 
     Trigger yButton1 = m_driverController1.button(ControlConstants.kYButton);
 
@@ -102,12 +113,22 @@ public class RobotContainer {
     Trigger aButton2 = m_driverController2.button(ControlConstants.kAButton);
     Trigger yButton2 = m_driverController2.button(ControlConstants.kYButton);
     Trigger lBumper2 = m_driverController2.button(ControlConstants.kLeftBumper);
+    Trigger rBumper2 = m_driverController2.button(ControlConstants.kRightBumper);
+    Trigger dPadUp2 = m_driverController2.povUp();
+    Trigger dPadDown2 = m_driverController2.povDown();
+    Trigger dPadLeft2 = m_driverController2.povLeft();
+    Trigger dPadRight2 = m_driverController2.povRight();
 
-    aButton1.whileTrue(new PivotToAngle(m_ShooterSubsystem, 0));
+    // TODO add angle setpoints or die
+    dPadUp2.onTrue(new PivotToAngle(m_ShooterSubsystem, 315).withInterruptBehavior(InterruptionBehavior.kCancelIncoming)); //Speaker/Amp
+    dPadDown2.onTrue(new PivotToAngle(m_ShooterSubsystem, 325).withInterruptBehavior(InterruptionBehavior.kCancelIncoming)); // Mid-distance
+    dPadLeft2.onTrue(new PivotToAngle(m_ShooterSubsystem, 305).withInterruptBehavior(InterruptionBehavior.kCancelIncoming)); //
+    dPadRight2.onTrue(new PivotToAngle(m_ShooterSubsystem, 320).withInterruptBehavior(InterruptionBehavior.kCancelIncoming));  
 
 
+    bButton1.onTrue(new TagShift(m_VisionSubsystem, m_DriveSubsystem));
 
-    xButton1.whileTrue(
+    lBumper1.whileTrue(
       new RunCommand(
         () -> m_DriveSubsystem.setX(), 
         m_DriveSubsystem));
@@ -118,31 +139,26 @@ public class RobotContainer {
         () -> m_DriveSubsystem.resetDrive(),
         m_DriveSubsystem));
 
-    aButton1.onTrue(new AimAtSpeaker(m_VisionSubsystem, m_DriveSubsystem));
+    aButton1.onTrue(new TagAlign(m_VisionSubsystem, m_DriveSubsystem));
 
-    aButton2.whileTrue(new ShootAtSpeed(m_ShooterSubsystem, 4000));
+    rBumper2.whileTrue(new Shoot(m_ShooterSubsystem));
 
-    bButton2.whileTrue(new RunCommand( () -> m_ShooterSubsystem.runShooter(1,1), m_ShooterSubsystem));
-
-    yButton2.whileTrue(new RunIntake(m_ShooterSubsystem, 1));
-
-    lBumper2.whileTrue(new RunIntake(m_ShooterSubsystem, -1));
+    lBumper2.onTrue(new LoadIntake(m_ShooterSubsystem));
 
     rBumper1.whileTrue(
       new RunCommand(
         () -> m_DriveSubsystem.drive( 
-          -slewY.calculate(MathUtil.applyDeadband(m_driverController1.getRawAxis(Constants.ControlConstants.kLeftYAxis), 0.15)) ,
-          -slewX.calculate(MathUtil.applyDeadband(m_driverController1.getRawAxis(Constants.ControlConstants.kLeftXAxis), 0.15)) ,
-          -(MathUtil.applyDeadband(m_driverController1.getRawAxis(Constants.ControlConstants.kRightXAxis), 0.15)),
-          true, true), m_DriveSubsystem));
-
-    bButton2.onTrue(
-      new TagAlign(m_VisionSubsystem, m_DriveSubsystem));  
+          -0.75*slewY.calculate(MathUtil.applyDeadband(m_driverController1.getRawAxis(Constants.ControlConstants.kLeftYAxis), 0.15)) ,
+          -0.75*slewX.calculate(MathUtil.applyDeadband(m_driverController1.getRawAxis(Constants.ControlConstants.kLeftXAxis), 0.15)) ,
+          -0.75*(MathUtil.applyDeadband(m_driverController1.getRawAxis(Constants.ControlConstants.kRightXAxis), 0.15)),
+          true, true), m_DriveSubsystem));  
       
-    xButton2.onTrue(
-      new TagShift(m_VisionSubsystem, m_DriveSubsystem));
-
+    //xButton1.onTrue(
+      //Reserved for climb spring release
+    //  );
     }
+
+
 
 
   /**

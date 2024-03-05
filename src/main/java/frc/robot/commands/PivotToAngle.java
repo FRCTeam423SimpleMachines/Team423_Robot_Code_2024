@@ -12,7 +12,7 @@ public class PivotToAngle extends Command{
     private double output;
 
     public PivotToAngle(ShooterIntakeSubsystem shooter, double angle) {
-        pivotController = new PIDController(0.5, 0, 0);
+        pivotController = new PIDController(1.3, 0, 0);
         m_shooter = shooter;
         desiredAngle = angle;
         addRequirements(shooter);
@@ -22,7 +22,7 @@ public class PivotToAngle extends Command{
     public void initialize() {
         pivotController.setSetpoint(desiredAngle);
         pivotController.enableContinuousInput(0, 360);
-        pivotController.setTolerance(3);
+        pivotController.setTolerance(5);
     }
 
     @Override
@@ -31,6 +31,7 @@ public class PivotToAngle extends Command{
         m_shooter.setPitch(output);
         SmartDashboard.putNumber("PID stuff", pivotController.getSetpoint());
         SmartDashboard.putNumber("PID output", output);
+        m_shooter.setReady(false);
     }
 
     @Override
@@ -41,6 +42,7 @@ public class PivotToAngle extends Command{
     @Override
     public void end(boolean isInterrupted) {
         m_shooter.setPitch(0);
+        m_shooter.setReady(true);
     }
 
 }

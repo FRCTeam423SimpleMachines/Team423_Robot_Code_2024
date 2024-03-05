@@ -23,5 +23,9 @@ public class RunIntake extends Command {
         m_Intake.setIntake(speed);
     }
 
+    @Override
+    public void end(boolean isInterrupted) {
+        m_Intake.setIntake(0);
+    }
 
 }

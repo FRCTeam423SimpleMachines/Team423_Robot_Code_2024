@@ -1,6 +1,8 @@
 package frc.robot.subsystems;
 
 
+import java.util.function.BooleanSupplier;
+
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.CANSparkLowLevel.MotorType;
@@ -10,6 +12,7 @@ import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.ShooterConstants;
+import frc.robot.commands.PivotToAngle;
 import frc.robot.Constants.IntakeConstants;
 
 public class ShooterIntakeSubsystem extends SubsystemBase{
@@ -27,8 +30,8 @@ public class ShooterIntakeSubsystem extends SubsystemBase{
     //private final AbsoluteEncoder m_PitchAbsoluteEncoder;
     private final DigitalInput sensorInput;
     private final DigitalInput sensorInput2;
-
- 
+    
+    private boolean ready = true;
 
     public ShooterIntakeSubsystem() {
         m_LeftShooterMoter = new CANSparkMax(ShooterConstants.kLeftMotorCANId, MotorType.kBrushless);
@@ -47,7 +50,7 @@ public class ShooterIntakeSubsystem extends SubsystemBase{
 
     public void runShooter(double lpow, double rpow) {
         m_LeftShooterMoter.set(lpow);
-        m_RightShooterMoter.set(lpow);
+        m_RightShooterMoter.set(rpow);
     }
 
     public void setShooterVolt(double lVoltage, double rVoltage ) {
@@ -101,6 +104,8 @@ public class ShooterIntakeSubsystem extends SubsystemBase{
         SmartDashboard.putNumber("Right RPM", getRightRPM());
         SmartDashboard.putString("Shooter Command", getCommandName());
         SmartDashboard.putNumber("Pivot Angle", getPitchDegrees());
+        SmartDashboard.putBoolean("Optic", getOptic1());
+        SmartDashboard.putBoolean("Shooter Ready", ready);
     }
     //SparkMAX -> Relative Encoder -> RPM -> PID -> Motor
 
@@ -109,5 +114,9 @@ public class ShooterIntakeSubsystem extends SubsystemBase{
             return getCurrentCommand().getName();
         }
         return "None";
+    }
+
+    public void setReady(boolean isReady){
+        ready = isReady;
     }
 }

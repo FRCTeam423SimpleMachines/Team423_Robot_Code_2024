@@ -11,23 +11,23 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 
 /** An example command that uses an example subsystem. */
-public class ShootAtSpeed extends Command {
+public class Shoot extends Command {
   @SuppressWarnings({"PMD.UnusedPrivateField", "PMD.SingularField"})
   private final ShooterIntakeSubsystem m_ShooterSubsystem;
   private double RPM;
   private PIDController leftSpeedController = new PIDController(0.01, 0.0, 0.0);
-  private SimpleMotorFeedforward leftFeedforward = new SimpleMotorFeedforward(0.0, 0.1);
+  private SimpleMotorFeedforward leftFeedforward = new SimpleMotorFeedforward(0.0, 0.165);
   private PIDController rightSpeedController = new PIDController(0.01, 0.0, 0.0);
-  private SimpleMotorFeedforward rightFeedforward = new SimpleMotorFeedforward(0.0, 0.1);
+  private SimpleMotorFeedforward rightFeedforward = new SimpleMotorFeedforward(0.0, 0.165);
 
   /**
    * Creates a new ExampleCommand.
    *
    * @param subsystem The subsystem used by this command.
    */
-  public ShootAtSpeed(ShooterIntakeSubsystem shooter, double speed) {
+  public Shoot(ShooterIntakeSubsystem shooter) {
     m_ShooterSubsystem = shooter;
-    RPM = speed;
+    RPM = 0;
     // Use addRequirements() here to declare subsystem dependencies.
     addRequirements(shooter);
   }
@@ -36,9 +36,9 @@ public class ShootAtSpeed extends Command {
   @Override
   public void initialize() {
     leftSpeedController.setSetpoint(RPM);
-    leftSpeedController.setTolerance(10);
+    leftSpeedController.setTolerance(100);
     rightSpeedController.setSetpoint(RPM);
-    rightSpeedController.setTolerance(10);
+    rightSpeedController.setTolerance(100);
 
   }
 
@@ -47,11 +47,20 @@ public class ShootAtSpeed extends Command {
   public void execute() {
     double leftMeasuredRPM = m_ShooterSubsystem.getLeftRPM();
     double rightMeasuredRPM = m_ShooterSubsystem.getRightRPM();
-    double leftDesiredPower = (leftFeedforward.calculate(RPM) + leftSpeedController.calculate(leftMeasuredRPM))/1000;
-    double rightDesiredPower = -(rightFeedforward.calculate(RPM) + rightSpeedController.calculate(rightMeasuredRPM))/1000;
+    double leftDesiredPower = (1);//leftFeedforward.calculate(RPM) + leftSpeedController.calculate(leftMeasuredRPM))/1000;
+    double rightDesiredPower = -(1);//rightFeedforward.calculate(RPM) + rightSpeedController.calculate(rightMeasuredRPM))/1000;
     m_ShooterSubsystem.runShooter(leftDesiredPower, rightDesiredPower);
-
-    SmartDashboard.putNumber("Desired Power LEFT", leftDesiredPower);
-    SmartDashboard.putNumber("Desired Power RIhGT", rightDesiredPower);
+    
+    if(leftMeasuredRPM > 5000){
+        m_ShooterSubsystem.setIntake(-1);
+    }
   }
+
+  @Override
+  public void end(boolean isInterrupted) {
+    m_ShooterSubsystem.runShooter(0, 0);
+    m_ShooterSubsystem.setIntake(0);
+  }
+
+  
 }

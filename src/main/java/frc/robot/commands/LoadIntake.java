@@ -11,23 +11,23 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 
 /** An example command that uses an example subsystem. */
-public class ShootAtSpeed extends Command {
+public class LoadIntake extends Command {
   @SuppressWarnings({"PMD.UnusedPrivateField", "PMD.SingularField"})
   private final ShooterIntakeSubsystem m_ShooterSubsystem;
   private double RPM;
   private PIDController leftSpeedController = new PIDController(0.01, 0.0, 0.0);
-  private SimpleMotorFeedforward leftFeedforward = new SimpleMotorFeedforward(0.0, 0.1);
+  private SimpleMotorFeedforward leftFeedforward = new SimpleMotorFeedforward(0.0, 0.165);
   private PIDController rightSpeedController = new PIDController(0.01, 0.0, 0.0);
-  private SimpleMotorFeedforward rightFeedforward = new SimpleMotorFeedforward(0.0, 0.1);
+  private SimpleMotorFeedforward rightFeedforward = new SimpleMotorFeedforward(0.0, 0.165);
 
   /**
    * Creates a new ExampleCommand.
    *
    * @param subsystem The subsystem used by this command.
    */
-  public ShootAtSpeed(ShooterIntakeSubsystem shooter, double speed) {
+  public LoadIntake(ShooterIntakeSubsystem shooter) {
     m_ShooterSubsystem = shooter;
-    RPM = speed;
+    RPM = -1500;
     // Use addRequirements() here to declare subsystem dependencies.
     addRequirements(shooter);
   }
@@ -50,8 +50,17 @@ public class ShootAtSpeed extends Command {
     double leftDesiredPower = (leftFeedforward.calculate(RPM) + leftSpeedController.calculate(leftMeasuredRPM))/1000;
     double rightDesiredPower = -(rightFeedforward.calculate(RPM) + rightSpeedController.calculate(rightMeasuredRPM))/1000;
     m_ShooterSubsystem.runShooter(leftDesiredPower, rightDesiredPower);
+    m_ShooterSubsystem.setIntake(1);
+  }
 
-    SmartDashboard.putNumber("Desired Power LEFT", leftDesiredPower);
-    SmartDashboard.putNumber("Desired Power RIhGT", rightDesiredPower);
+  @Override
+  public boolean isFinished() {
+    return !m_ShooterSubsystem.getOptic1();
+  }
+
+  @Override
+  public void end(boolean isInterrupted) {
+    m_ShooterSubsystem.runShooter(0, 0);
+    m_ShooterSubsystem.setIntake(0);
   }
 }
