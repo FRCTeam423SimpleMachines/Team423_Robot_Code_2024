@@ -15,12 +15,10 @@ public class ShooterIntakeSubsystem extends SubsystemBase{
     
     private final CANSparkMax m_LeftShooterMoter;
     private final CANSparkMax m_RightShooterMoter;
-    private final CANSparkMax m_PitchSparkMax;
     private final CANSparkMax m_SlideSparkMax;
     private final CANSparkMax m_IntakeSparkMax;
     private final RelativeEncoder m_LeftEncoder;
     private final RelativeEncoder m_RightEncoder;
-    private final DutyCycleEncoder m_PitchEncoder;
     private final RelativeEncoder m_SlideEncoder;
     private final RelativeEncoder m_IntakeEncoder;
     //private final AbsoluteEncoder m_PitchAbsoluteEncoder;
@@ -32,12 +30,10 @@ public class ShooterIntakeSubsystem extends SubsystemBase{
     public ShooterIntakeSubsystem() {
         m_LeftShooterMoter = new CANSparkMax(ShooterConstants.kLeftMotorCANId, MotorType.kBrushless);
         m_RightShooterMoter = new CANSparkMax(ShooterConstants.kRightMotorCANId, MotorType.kBrushless);
-        m_PitchSparkMax = new CANSparkMax(ShooterConstants.kPitchMotorCANId, MotorType.kBrushless);
         m_SlideSparkMax = new CANSparkMax(ShooterConstants.kSlideMotorCANId, MotorType.kBrushless);
         m_IntakeSparkMax = new CANSparkMax(IntakeConstants.kIntakeMotorCANId, MotorType.kBrushless);
         m_LeftEncoder = m_LeftShooterMoter.getEncoder();
         m_RightEncoder = m_RightShooterMoter.getEncoder();
-        m_PitchEncoder = new DutyCycleEncoder(3);
         m_SlideEncoder = m_SlideSparkMax.getEncoder();
         m_IntakeEncoder = m_IntakeSparkMax.getEncoder();
         sensorInput = new DigitalInput(IntakeConstants.kDIOInputID1);
@@ -52,10 +48,6 @@ public class ShooterIntakeSubsystem extends SubsystemBase{
     public void setShooterVolt(double lVoltage, double rVoltage ) {
         m_LeftShooterMoter.setVoltage(lVoltage);
         m_LeftShooterMoter.setVoltage(rVoltage);
-    }
-
-    public void setPitch(double pow) {
-        m_PitchSparkMax.set(pow);
     }
 
     public void setSlide(double pow) {
@@ -78,9 +70,7 @@ public class ShooterIntakeSubsystem extends SubsystemBase{
         return m_RightEncoder.getVelocity();
     }
 
-    public double getPitchDegrees() {
-        return m_PitchEncoder.getAbsolutePosition()*360;
-    }
+    
 
     public double getSlide() {
         return m_SlideEncoder.getPosition();
@@ -99,7 +89,6 @@ public class ShooterIntakeSubsystem extends SubsystemBase{
         SmartDashboard.putNumber("Left RPM", getLeftRPM());
         SmartDashboard.putNumber("Right RPM", getRightRPM());
         SmartDashboard.putString("Shooter Command", getCommandName());
-        SmartDashboard.putNumber("Pivot Angle", getPitchDegrees());
         SmartDashboard.putBoolean("Optic", getOptic1());
         SmartDashboard.putBoolean("Shooter Ready", ready);
     }

@@ -13,6 +13,7 @@ import frc.robot.commands.Shoot;
 import frc.robot.commands.visionAim.TagShift;
 import frc.robot.subsystems.ClimbSubsystem;
 import frc.robot.subsystems.DriveSubsystem;
+import frc.robot.subsystems.PivotSubsystem;
 import frc.robot.subsystems.ShooterIntakeSubsystem;
 import frc.robot.subsystems.VisionSubsystem;
 
@@ -43,6 +44,7 @@ public class RobotContainer {
   private final VisionSubsystem m_VisionSubsystem = new VisionSubsystem(m_DriveSubsystem);
   private final ShooterIntakeSubsystem m_ShooterSubsystem = new ShooterIntakeSubsystem();
   private final ClimbSubsystem m_Climb = new ClimbSubsystem(); 
+  private final PivotSubsystem m_PivotSubsystem = new PivotSubsystem();
 
   private final CommandJoystick m_driverController1 = new CommandJoystick(ControlConstants.kControllerPort1); 
   private final CommandJoystick m_driverController2 = new CommandJoystick(ControlConstants.kControllerPort2); 
@@ -58,7 +60,7 @@ public class RobotContainer {
 
     //Register named commads for pathplanner 
     NamedCommands.registerCommand("AimAtSpeaker", new AimAtSpeaker(m_VisionSubsystem, m_DriveSubsystem));
-    NamedCommands.registerCommand("Pivot325", new PivotToAngle(m_ShooterSubsystem, 325));
+    NamedCommands.registerCommand("Pivot325", new PivotToAngle(m_PivotSubsystem, 325));
     NamedCommands.registerCommand("Shoot", new Shoot(m_ShooterSubsystem)); //Whatever makes the shooter shoot and aim
     NamedCommands.registerCommand("EndShoot", new EndShoot(m_ShooterSubsystem));
     //NamedCommands.registerCommand("PickUpInit", new ParallelCommandGroup(null)); //Command group to set the robot up to pick up rings during auton
@@ -79,6 +81,8 @@ public class RobotContainer {
           true, true), m_DriveSubsystem));
 
     m_ShooterSubsystem.setDefaultCommand(new RunCommand( () -> m_ShooterSubsystem.runShooter(0,0), m_ShooterSubsystem));
+
+    m_PivotSubsystem.setDefaultCommand(new PivotToAngle(m_PivotSubsystem, 270));
 
     m_Climb.setDefaultCommand(new RunCommand( () -> m_Climb.runClimb(m_driverController2.getRawAxis(ControlConstants.kLeftYAxis)), m_Climb));
   }
@@ -114,10 +118,10 @@ public class RobotContainer {
     Trigger dPadLeft2 = m_driverController2.povLeft();
     Trigger dPadRight2 = m_driverController2.povRight();
 
-    dPadUp2.onTrue(new PivotToAngle(m_ShooterSubsystem, 315).withInterruptBehavior(InterruptionBehavior.kCancelIncoming)); //Speaker/Amp
-    dPadDown2.onTrue(new PivotToAngle(m_ShooterSubsystem, 325).withInterruptBehavior(InterruptionBehavior.kCancelIncoming)); // Mid-distance
-    dPadLeft2.onTrue(new PivotToAngle(m_ShooterSubsystem, 305).withInterruptBehavior(InterruptionBehavior.kCancelIncoming)); //
-    dPadRight2.onTrue(new PivotToAngle(m_ShooterSubsystem, 320).withInterruptBehavior(InterruptionBehavior.kCancelIncoming));  
+    dPadUp2.onTrue(new PivotToAngle(m_PivotSubsystem, 315));
+    dPadDown2.onTrue(new PivotToAngle(m_PivotSubsystem, 325));
+    dPadLeft2.onTrue(new PivotToAngle(m_PivotSubsystem, 305));
+    dPadRight2.onTrue(new PivotToAngle(m_PivotSubsystem, 320));  
 
 
     bButton1.onTrue(new TagShift(m_VisionSubsystem, m_DriveSubsystem));
