@@ -82,7 +82,7 @@ public class RobotContainer {
 
     m_ShooterSubsystem.setDefaultCommand(new RunCommand( () -> m_ShooterSubsystem.runShooter(0,0), m_ShooterSubsystem));
 
-    m_PivotSubsystem.setDefaultCommand(new PivotToAngle(m_PivotSubsystem, 270));
+    // m_PivotSubsystem.setDefaultCommand(new PivotToAngle(m_PivotSubsystem, 270));
 
     m_Climb.setDefaultCommand(new RunCommand( () -> m_Climb.runClimb(m_driverController2.getRawAxis(ControlConstants.kLeftYAxis)), m_Climb));
   }
@@ -118,10 +118,12 @@ public class RobotContainer {
     Trigger dPadLeft2 = m_driverController2.povLeft();
     Trigger dPadRight2 = m_driverController2.povRight();
 
-    dPadUp2.onTrue(new PivotToAngle(m_PivotSubsystem, 315));
-    dPadDown2.onTrue(new PivotToAngle(m_PivotSubsystem, 325));
-    dPadLeft2.onTrue(new PivotToAngle(m_PivotSubsystem, 305));
-    dPadRight2.onTrue(new PivotToAngle(m_PivotSubsystem, 320));  
+
+    //Curremt range: ~200-245
+    dPadUp2.onTrue(new PivotToAngle(m_PivotSubsystem, 195));
+    dPadDown2.onTrue(new PivotToAngle(m_PivotSubsystem, 217));
+    dPadLeft2.onTrue(new PivotToAngle(m_PivotSubsystem, 240));
+    dPadRight2.onTrue(new PivotToAngle(m_PivotSubsystem, 220));  
 
 
     bButton1.onTrue(new TagShift(m_VisionSubsystem, m_DriveSubsystem));
