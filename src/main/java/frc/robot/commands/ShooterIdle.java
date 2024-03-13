@@ -22,7 +22,6 @@ public class ShooterIdle extends Command{
     public void execute() {
         m_shooter.runShooter(0.0, 0.0);
         m_shooter.setIntake(0.0);
-        m_shooter.setPitch(0.0);
     }
 
     
