@@ -38,7 +38,7 @@ public class TagShift extends Command{
 
     @Override
     public void initialize() {
-        
+        strafeController.setTolerance(5);
     }
     
 
@@ -49,7 +49,7 @@ public class TagShift extends Command{
        
         strafeSpeed = strafeController.calculate(m_VisionSubsystem.getVisionYaw());   
         
-        m_DriveSubsystem.driveRobotRelative(new ChassisSpeeds(0, -strafeSpeed, 0));
+        m_DriveSubsystem.driveRobotRelative(new ChassisSpeeds(0, strafeSpeed, 0));
 
         if(targetPose != null) {
             targetPoseY.setDouble(targetPose.getY());

@@ -82,10 +82,10 @@ public class AimAtSpeaker extends Command {
             targetPose = m_VisionSubsystem.getTargetPose(VisionConstants.kTargetOffset, target);  
         }
 
-        
-        omegaController.setGoal(targetPose.getRotation().getRadians());
-        omegaSpeed = omegaController.calculate(robotPose.getRotation().getRadians());  
-        
+        if (target != null) {
+            omegaController.setGoal(targetPose.getRotation().getRadians());
+            omegaSpeed = omegaController.calculate(robotPose.getRotation().getRadians());  
+        }
 
         if (omegaController.atGoal()) omegaSpeed = 0;
 

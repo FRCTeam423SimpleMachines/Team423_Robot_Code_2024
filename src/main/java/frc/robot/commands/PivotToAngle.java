@@ -22,7 +22,7 @@ public class PivotToAngle extends Command{
     public void initialize() {
         pivotController.setSetpoint(desiredAngle);
         pivotController.enableContinuousInput(0, 360);
-        pivotController.setTolerance(5);
+        pivotController.setTolerance(1);
     }
 
     @Override

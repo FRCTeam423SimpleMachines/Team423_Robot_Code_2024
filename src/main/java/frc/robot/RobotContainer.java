@@ -6,10 +6,12 @@ package frc.robot;
 
 import frc.robot.commands.visionAim.AimAtSpeaker;
 import frc.robot.commands.visionAim.TagAlign;
+import frc.robot.commands.AutoPivot;
 import frc.robot.commands.EndShoot;
 import frc.robot.commands.LoadIntake;
 import frc.robot.commands.PivotToAngle;
 import frc.robot.commands.Shoot;
+import frc.robot.commands.ShootAuto;
 import frc.robot.commands.visionAim.TagShift;
 import frc.robot.subsystems.ClimbSubsystem;
 import frc.robot.subsystems.DriveSubsystem;
@@ -49,6 +51,7 @@ public class RobotContainer {
 
   SendableChooser<Command> m_chooser; 
 
+  private double pivotTune = 220;
 
   private SlewRateLimiter slewY = new SlewRateLimiter(2);
   private SlewRateLimiter slewX = new SlewRateLimiter(2);
@@ -58,9 +61,15 @@ public class RobotContainer {
 
     //Register named commads for pathplanner 
     NamedCommands.registerCommand("AimAtSpeaker", new AimAtSpeaker(m_VisionSubsystem, m_DriveSubsystem));
+<<<<<<< Updated upstream
     NamedCommands.registerCommand("Pivot325", new PivotToAngle(m_ShooterSubsystem, 325));
+=======
+    NamedCommands.registerCommand("Pivot325", new PivotToAngle(m_PivotSubsystem, 217));
+>>>>>>> Stashed changes
     NamedCommands.registerCommand("Shoot", new Shoot(m_ShooterSubsystem)); //Whatever makes the shooter shoot and aim
     NamedCommands.registerCommand("EndShoot", new EndShoot(m_ShooterSubsystem));
+    NamedCommands.registerCommand("ShootAuto", new ShootAuto(m_ShooterSubsystem));
+    NamedCommands.registerCommand("AutoPivot", new AutoPivot(m_PivotSubsystem, 220));
     //NamedCommands.registerCommand("PickUpInit", new ParallelCommandGroup(null)); //Command group to set the robot up to pick up rings during auton
 
     m_chooser = AutoBuilder.buildAutoChooser();
@@ -114,10 +123,22 @@ public class RobotContainer {
     Trigger dPadLeft2 = m_driverController2.povLeft();
     Trigger dPadRight2 = m_driverController2.povRight();
 
+<<<<<<< Updated upstream
     dPadUp2.onTrue(new PivotToAngle(m_ShooterSubsystem, 315).withInterruptBehavior(InterruptionBehavior.kCancelIncoming)); //Speaker/Amp
     dPadDown2.onTrue(new PivotToAngle(m_ShooterSubsystem, 325).withInterruptBehavior(InterruptionBehavior.kCancelIncoming)); // Mid-distance
     dPadLeft2.onTrue(new PivotToAngle(m_ShooterSubsystem, 305).withInterruptBehavior(InterruptionBehavior.kCancelIncoming)); //
     dPadRight2.onTrue(new PivotToAngle(m_ShooterSubsystem, 320).withInterruptBehavior(InterruptionBehavior.kCancelIncoming));  
+=======
+
+    //Curremt range: ~200-245
+    dPadUp2.onTrue(new PivotToAngle(m_PivotSubsystem, 195));
+    dPadDown2.onTrue(new PivotToAngle(m_PivotSubsystem, 217));
+    dPadLeft2.onTrue(new PivotToAngle(m_PivotSubsystem, 235));
+    dPadRight2.onTrue(new PivotToAngle(m_PivotSubsystem, 220));  
+>>>>>>> Stashed changes
+
+    bButton2.onTrue(new PivotToAngle(m_PivotSubsystem, pivotTune+=5));
+    xButton2.onTrue(new PivotToAngle(m_PivotSubsystem, pivotTune-=5));
 
 
     bButton1.onTrue(new TagShift(m_VisionSubsystem, m_DriveSubsystem));
@@ -133,7 +154,7 @@ public class RobotContainer {
         () -> m_DriveSubsystem.resetDrive(),
         m_DriveSubsystem));
 
-    aButton1.onTrue(new TagAlign(m_VisionSubsystem, m_DriveSubsystem));
+    aButton1.onTrue(new AimAtSpeaker(m_VisionSubsystem, m_DriveSubsystem));
 
     rBumper2.whileTrue(new Shoot(m_ShooterSubsystem));
 

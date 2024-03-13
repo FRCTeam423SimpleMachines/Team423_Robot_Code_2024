@@ -115,15 +115,15 @@ public final class Constants {
     public static final double kBackRightChassisAngularOffset = Math.PI / 2;
 
     // SPARK MAX CAN IDs
-    public static final int kFrontLeftDrivingCanId = 12;
-    public static final int kRearLeftDrivingCanId = 13;
-    public static final int kFrontRightDrivingCanId = 11;
-    public static final int kRearRightDrivingCanId = 10;
+    public static final int kFrontLeftDrivingCanId = 10;
+    public static final int kRearLeftDrivingCanId = 11;
+    public static final int kFrontRightDrivingCanId = 13;
+    public static final int kRearRightDrivingCanId = 12;
 
-    public static final int kFrontLeftTurningCanId = 16;
-    public static final int kRearLeftTurningCanId = 17;
-    public static final int kFrontRightTurningCanId = 15;
-    public static final int kRearRightTurningCanId = 14;
+    public static final int kFrontLeftTurningCanId = 14;
+    public static final int kRearLeftTurningCanId = 15;
+    public static final int kFrontRightTurningCanId = 17;
+    public static final int kRearRightTurningCanId = 16;
 
     public static final boolean kGyroReversed = false;
   }
@@ -206,9 +206,9 @@ public final class Constants {
   public static final class VisionConstants {
     public static final Transform3d kTargetOffset = new Transform3d(0, 0, Units.inchesToMeters(52), new Rotation3d(0,0,0));
     public static final Pose3d kRobotToCamera = new Pose3d(
-      Units.inchesToMeters(5.5), 
-      Units.inchesToMeters(-4), 
-      Units.inchesToMeters(18),
+      Units.inchesToMeters(9.5), 
+      Units.inchesToMeters(0), 
+      Units.inchesToMeters(14.5),
       new Rotation3d(0, Units.degreesToRadians(-15), Units.degreesToRadians(0))
       );
   }
