@@ -25,6 +25,7 @@ import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.GenericEntry;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.MathUtils;
 import frc.robot.Constants.FieldConstants;
@@ -201,6 +202,11 @@ public class VisionSubsystem extends SubsystemBase{
        return results.hasTargets();
     }
 
+    public double getTagDistance() {
+        Transform3d targetTransform = m_target.getBestCameraToTarget();
+        return Math.sqrt(Math.pow(targetTransform.getX(), 2) + Math.pow(targetTransform.getY(), 2));
+    }
+
     @Override
     public void periodic() {
         results = m_camera.getLatestResult(); 
@@ -217,8 +223,8 @@ public class VisionSubsystem extends SubsystemBase{
         targetPoseY.setDouble(getTargetPose(VisionConstants.kTargetOffset, results.getBestTarget()).getY());
         targetPoseRot.setDouble(getTargetPose(VisionConstants.kTargetOffset, results.getBestTarget()).getRotation().getDegrees());
         yaw.setDouble(getVisionYaw());
-        
         bestTarID.setInteger(getTargetID());
+        SmartDashboard.putNumber("Target Distance", getTagDistance());
     }
 
     public int getTargetID() {
