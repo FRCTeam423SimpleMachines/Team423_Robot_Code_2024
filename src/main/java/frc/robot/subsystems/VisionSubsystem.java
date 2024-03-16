@@ -203,8 +203,12 @@ public class VisionSubsystem extends SubsystemBase{
     }
 
     public double getTagDistance() {
-        Transform3d targetTransform = m_target.getBestCameraToTarget();
-        return Math.sqrt(Math.pow(targetTransform.getX(), 2) + Math.pow(targetTransform.getY(), 2));
+        if(m_target != null) {
+            Transform3d targetTransform = m_target.getBestCameraToTarget();
+            return Math.sqrt(Math.pow(targetTransform.getX(), 2) + Math.pow(targetTransform.getY(), 2));
+        }
+
+        return -1;
     }
 
     @Override

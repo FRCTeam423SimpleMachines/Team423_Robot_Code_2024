@@ -12,7 +12,7 @@ public class AutoPivot extends Command {
     private double output;
 
     public AutoPivot(PivotSubsystem pivot, double angle) {
-        pivotController = new PIDController(1.3, 0, 0);
+        pivotController = new PIDController(1.3, 0, 0.07);
         m_pivot = pivot;
         desiredAngle = angle;
         addRequirements(pivot);

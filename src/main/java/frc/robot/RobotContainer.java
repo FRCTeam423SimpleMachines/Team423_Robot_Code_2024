@@ -63,9 +63,6 @@ public class RobotContainer {
 
     //Register named commads for pathplanner 
     NamedCommands.registerCommand("AimAtSpeaker", new AimAtSpeaker(m_VisionSubsystem, m_DriveSubsystem));
-    NamedCommands.registerCommand("Pivot325", new PivotToAngle(m_PivotSubsystem, 325));
-    NamedCommands.registerCommand("Shoot", new Shoot(m_ShooterSubsystem)); //Whatever makes the shooter shoot and aim
-    NamedCommands.registerCommand("EndShoot", new EndShoot(m_ShooterSubsystem));
     NamedCommands.registerCommand("ShootAuto", new ShootAuto(m_ShooterSubsystem));
     NamedCommands.registerCommand("AutoPivot", new AutoPivot(m_PivotSubsystem, 220));
     //NamedCommands.registerCommand("PickUpInit", new ParallelCommandGroup(null)); //Command group to set the robot up to pick up rings during auton
@@ -89,7 +86,7 @@ public class RobotContainer {
 
     // m_PivotSubsystem.setDefaultCommand(new PivotToAngle(m_PivotSubsystem, 270));
 
-    m_Climb.setDefaultCommand(new RunCommand( () -> m_Climb.runClimb(m_driverController2.getRawAxis(ControlConstants.kLeftYAxis)), m_Climb));
+    m_Climb.setDefaultCommand(new RunCommand( () -> m_Climb.runClimb(0), m_Climb));
   }
 
   /**
@@ -132,9 +129,10 @@ public class RobotContainer {
 
     bButton2.onTrue(new PivotToAngle(m_PivotSubsystem, pivotTune+=5));
     xButton2.onTrue(new PivotToAngle(m_PivotSubsystem, pivotTune-=5));
+    yButton2.whileTrue(new RunCommand( () -> m_Climb.runClimb(1)));
 
 
-    bButton1.onTrue(new TagShift(m_VisionSubsystem, m_DriveSubsystem));
+    bButton1.whileTrue(new TagShift(m_VisionSubsystem, m_DriveSubsystem));
 
     lBumper1.whileTrue(
       new RunCommand(

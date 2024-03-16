@@ -2,8 +2,8 @@
   "version": 1.0,
   "startingPose": {
     "position": {
-      "x": 1.3363329583802028,
-      "y": 5.585253456221199
+      "x": 0.6913168112050516,
+      "y": 4.368518451322617
     },
     "rotation": -60.0
   },
@@ -14,25 +14,13 @@
         {
           "type": "named",
           "data": {
-            "name": "Pivot325"
+            "name": "AutoPivot"
           }
         },
         {
           "type": "named",
           "data": {
-            "name": "Shoot"
-          }
-        },
-        {
-          "type": "wait",
-          "data": {
-            "waitTime": 1.0
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "EndShoot"
+            "name": "ShootAuto"
           }
         },
         {

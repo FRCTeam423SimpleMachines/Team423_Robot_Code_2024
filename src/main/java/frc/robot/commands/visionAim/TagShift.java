@@ -14,7 +14,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 public class TagShift extends Command{
     
 
-    private PIDController strafeController = new PIDController(0.05, 0.0, 0);
+    private PIDController strafeController = new PIDController(0.1, 0.0, 0);
 
     // double tx;
     // double ta;
@@ -38,7 +38,7 @@ public class TagShift extends Command{
 
     @Override
     public void initialize() {
-        strafeController.setTolerance(5);
+        strafeController.setTolerance(1);
     }
     
 
@@ -49,7 +49,7 @@ public class TagShift extends Command{
        
         strafeSpeed = strafeController.calculate(m_VisionSubsystem.getVisionYaw());   
         
-        m_DriveSubsystem.driveRobotRelative(new ChassisSpeeds(0, strafeSpeed, 0));
+        m_DriveSubsystem.driveRobotRelative(new ChassisSpeeds(0, -strafeSpeed, 0));
 
         if(targetPose != null) {
             targetPoseY.setDouble(targetPose.getY());
