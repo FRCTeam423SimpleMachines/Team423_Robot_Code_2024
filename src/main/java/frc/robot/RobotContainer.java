@@ -65,6 +65,7 @@ public class RobotContainer {
     NamedCommands.registerCommand("AimAtSpeaker", new AimAtSpeaker(m_VisionSubsystem, m_DriveSubsystem));
     NamedCommands.registerCommand("ShootAuto", new ShootAuto(m_ShooterSubsystem));
     NamedCommands.registerCommand("AutoPivot", new AutoPivot(m_PivotSubsystem, 220));
+    NamedCommands.registerCommand("AutoPivotSide", new AutoPivot(m_PivotSubsystem, 210));
     //NamedCommands.registerCommand("PickUpInit", new ParallelCommandGroup(null)); //Command group to set the robot up to pick up rings during auton
 
     m_chooser = AutoBuilder.buildAutoChooser();
@@ -77,9 +78,9 @@ public class RobotContainer {
     m_DriveSubsystem.setDefaultCommand(
       new RunCommand(
         () -> m_DriveSubsystem.drive(
-          -0.5*slewY.calculate(MathUtil.applyDeadband(m_driverController1.getRawAxis(Constants.ControlConstants.kLeftYAxis), 0.15)) ,
-          -0.5*slewX.calculate(MathUtil.applyDeadband(m_driverController1.getRawAxis(Constants.ControlConstants.kLeftXAxis), 0.15)) ,
-          -0.5*(MathUtil.applyDeadband(m_driverController1.getRawAxis(Constants.ControlConstants.kRightXAxis), 0.15)),
+          -0.5*slewY.calculate(MathUtil.applyDeadband(m_driverController1.getRawAxis(Constants.ControlConstants.kLeftYAxis), 0.05)) ,
+          -0.5*slewX.calculate(MathUtil.applyDeadband(m_driverController1.getRawAxis(Constants.ControlConstants.kLeftXAxis), 0.05)) ,
+          -0.5*(MathUtil.applyDeadband(m_driverController1.getRawAxis(Constants.ControlConstants.kRightXAxis), 0.05)),
           true, true), m_DriveSubsystem));
 
     m_ShooterSubsystem.setDefaultCommand(new RunCommand( () -> m_ShooterSubsystem.runShooter(0,0), m_ShooterSubsystem));
@@ -122,19 +123,26 @@ public class RobotContainer {
 
 
     //Curremt range: ~200-245
+    //Near Vertical 
     dPadUp2.onTrue(new PivotToAngle(m_PivotSubsystem, 195));
     dPadDown2.onTrue(new PivotToAngle(m_PivotSubsystem, 217));
+    //Loading position
     dPadLeft2.onTrue(new PivotToAngle(m_PivotSubsystem, 240));
+    //Shoot Straight Subwoofer
     dPadRight2.onTrue(new PivotToAngle(m_PivotSubsystem, 220));  
 
-    bButton2.onTrue(new PivotToAngle(m_PivotSubsystem, pivotTune+=5));
-    xButton2.onTrue(new PivotToAngle(m_PivotSubsystem, pivotTune-=5));
+
+    //Shooting from side subwoofer
+    bButton2.onTrue(new PivotToAngle(m_PivotSubsystem, 210));
+    //Shooting Trap
+    aButton2.onTrue(new PivotToAngle(m_PivotSubsystem, 235));
+    //xButton2.onTrue(new PivotToAngle(m_PivotSubsystem, pivotTune-=5));
     yButton2.whileTrue(new RunCommand( () -> m_Climb.runClimb(1)));
 
 
     bButton1.whileTrue(new TagShift(m_VisionSubsystem, m_DriveSubsystem));
 
-    lBumper1.whileTrue(
+    xButton1.whileTrue(
       new RunCommand(
         () -> m_DriveSubsystem.setX(), 
         m_DriveSubsystem));
@@ -154,9 +162,17 @@ public class RobotContainer {
     rBumper1.whileTrue(
       new RunCommand(
         () -> m_DriveSubsystem.drive( 
-          -0.75*slewY.calculate(MathUtil.applyDeadband(m_driverController1.getRawAxis(Constants.ControlConstants.kLeftYAxis), 0.15)) ,
-          -0.75*slewX.calculate(MathUtil.applyDeadband(m_driverController1.getRawAxis(Constants.ControlConstants.kLeftXAxis), 0.15)) ,
-          -0.75*(MathUtil.applyDeadband(m_driverController1.getRawAxis(Constants.ControlConstants.kRightXAxis), 0.15)),
+          -0.85*slewY.calculate(MathUtil.applyDeadband(m_driverController1.getRawAxis(Constants.ControlConstants.kLeftYAxis), 0.05)) ,
+          -0.85*slewX.calculate(MathUtil.applyDeadband(m_driverController1.getRawAxis(Constants.ControlConstants.kLeftXAxis), 0.05)) ,
+          -0.85*(MathUtil.applyDeadband(m_driverController1.getRawAxis(Constants.ControlConstants.kRightXAxis), 0.05)),
+          true, true), m_DriveSubsystem));  
+
+    lBumper1.whileTrue(
+      new RunCommand(
+        () -> m_DriveSubsystem.drive( 
+          -0.35*slewY.calculate(MathUtil.applyDeadband(m_driverController1.getRawAxis(Constants.ControlConstants.kLeftYAxis), 0.05)) ,
+          -0.35*slewX.calculate(MathUtil.applyDeadband(m_driverController1.getRawAxis(Constants.ControlConstants.kLeftXAxis), 0.05)) ,
+          -0.35*(MathUtil.applyDeadband(m_driverController1.getRawAxis(Constants.ControlConstants.kRightXAxis), 0.05)),
           true, true), m_DriveSubsystem));  
       
     //xButton1.onTrue(

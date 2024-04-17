@@ -12,7 +12,7 @@ public class AutoPivot extends Command {
     private double output;
 
     public AutoPivot(PivotSubsystem pivot, double angle) {
-        pivotController = new PIDController(1.3, 0, 0.07);
+        pivotController = new PIDController(1.3, 0.001, 0.07);
         m_pivot = pivot;
         desiredAngle = angle;
         addRequirements(pivot);
@@ -22,7 +22,7 @@ public class AutoPivot extends Command {
     public void initialize() {
         pivotController.setSetpoint(desiredAngle);
         pivotController.enableContinuousInput(0, 360);
-        pivotController.setTolerance(1);
+        pivotController.setTolerance(2);
     }
 
     @Override

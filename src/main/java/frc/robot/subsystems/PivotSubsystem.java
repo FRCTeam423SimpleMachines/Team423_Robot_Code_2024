@@ -7,9 +7,11 @@ package frc.robot.subsystems;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants.PivotConstants;
 import frc.robot.Constants.ShooterConstants;
 
 public class PivotSubsystem extends SubsystemBase {
@@ -19,7 +21,7 @@ public class PivotSubsystem extends SubsystemBase {
 
     /** Creates a new ExampleSubsystem. */
     public PivotSubsystem() {
-        m_PitchSparkMax = new CANSparkMax(ShooterConstants.kPitchMotorCANId, MotorType.kBrushless);
+        m_PitchSparkMax = new CANSparkMax(PivotConstants.kPivotMotorCANId, MotorType.kBrushless);
         m_PitchEncoder = new DutyCycleEncoder(3);
     }
 
@@ -35,5 +37,17 @@ public class PivotSubsystem extends SubsystemBase {
 
     public double getPitchDegrees() {
         return m_PitchEncoder.getAbsolutePosition()*360;
+    }
+
+    public double getRealPitch() {
+        return getPitchDegrees() + PivotConstants.kPitchEncoderOffset;
+    }
+
+    public double getShooterHeight() {
+       return Units.inchesToMeters(22.5)*Math.sin(Units.degreesToRadians(90-getRealPitch()));
+    }
+
+    public double getShooterX() {
+       return Units.inchesToMeters(22.5)*Math.cos(Units.degreesToRadians(90-getRealPitch()));
     }
 }

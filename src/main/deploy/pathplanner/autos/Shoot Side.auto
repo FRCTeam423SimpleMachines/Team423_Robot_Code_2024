@@ -2,10 +2,10 @@
   "version": 1.0,
   "startingPose": {
     "position": {
-      "x": 0.8379113901084951,
-      "y": 6.670053340106681
+      "x": 2,
+      "y": 2
     },
-    "rotation": 60.0
+    "rotation": 0
   },
   "command": {
     "type": "sequential",
@@ -21,12 +21,6 @@
           "type": "named",
           "data": {
             "name": "ShootAuto"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Get Out Top"
           }
         }
       ]

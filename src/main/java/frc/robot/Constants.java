@@ -61,14 +61,21 @@ public final class Constants {
     //SparkMax IDs for Shooter components
     public static final int kLeftMotorCANId = 21;
     public static final int kRightMotorCANId = 22;
-    public static final int kPitchMotorCANId = 18;
+    
     public static final int kSlideMotorCANId = 30; //Currently non-exsistent
     //Preset positions for slide
     public static final int kSlideDownPosition = 5;
     public static final int kSlideMidPosition = 10;
     public static final int kSlideUpPosition = 20;
     //Encoder ID
+    
+  }
+
+  public static final class PivotConstants {
+    public static final int kPivotMotorCANId = 18;
     public static final int kPitchEncoderChannel = 0;
+    public static final double kPitchEncoderOffset = -186;
+    public static final double pivotHieght = Units.inchesToMeters(15);
   }
 
   public static final class ClimbConstants {
@@ -206,16 +213,17 @@ public final class Constants {
   public static final class VisionConstants {
     public static final Transform3d kTargetOffset = new Transform3d(0, 0, Units.inchesToMeters(52), new Rotation3d(0,0,0));
     public static final Pose3d kRobotToCamera = new Pose3d(
-      Units.inchesToMeters(9.5), 
       Units.inchesToMeters(0), 
-      Units.inchesToMeters(14.5),
-      new Rotation3d(0, Units.degreesToRadians(-15), Units.degreesToRadians(0))
+      Units.inchesToMeters(15), 
+      Units.inchesToMeters(23.5),
+      new Rotation3d(0, Units.degreesToRadians(-15), Units.degreesToRadians(180))
       );
   }
 
   public static final class FieldConstants {
     public static final double fieldLength = Units.inchesToMeters(651.25);
     public static final double fieldWidth = Units.inchesToMeters(315.5);
+    public static final double speakerHeight = Units.inchesToMeters(68);
 
     public static AprilTagFieldLayout aprilTagFieldLayout = AprilTagFields.k2024Crescendo.loadAprilTagLayoutField();
 

@@ -20,6 +20,7 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
@@ -202,13 +203,28 @@ public class VisionSubsystem extends SubsystemBase{
        return results.hasTargets();
     }
 
-    public double getTagDistance() {
-        if(m_target != null) {
-            Transform3d targetTransform = m_target.getBestCameraToTarget();
-            return Math.sqrt(Math.pow(targetTransform.getX(), 2) + Math.pow(targetTransform.getY(), 2));
+    public double getTagDistance(PhotonTrackedTarget target) {
+        Transform3d targetTransform = m_target.getBestCameraToTarget();
+        Translation3d robotToTarget = targetTransform.getTranslation().plus(VisionConstants.kRobotToCamera.getTranslation());
+        return Math.sqrt(Math.pow(robotToTarget.getX(), 2) + Math.pow(robotToTarget.getY(), 2)); 
+    }
+
+    public double getSpeakerDistance() {
+        
+        List<PhotonTrackedTarget> targets = results.targets;
+        if(targets != null) {
+            for (PhotonTrackedTarget tar : targets) {
+                if(tar.getFiducialId()==4 || tar.getFiducialId()==8) {
+                    return getTagDistance(tar);
+                }
+            }
         }
 
         return -1;
+    }
+
+    public double getPivotAngle(double x, double y, double h, double v) {
+        return Math.acos(Math.sqrt(((x*x)-((9.8*y*(x*x)-9.8*h*(x*x))/(v*v))+Math.sqrt(Math.pow(((9.8*y*(x*x)-9.8*h*(x*x))/(v*v))-(x*x), 2)-((96.04*Math.pow(x, 4))/Math.pow(v, 4))*(x*x+y*y+h*h-2*y*h)))/2*(x*x+y*y+h*h-2*y*h)));
     }
 
     @Override
@@ -228,7 +244,10 @@ public class VisionSubsystem extends SubsystemBase{
         targetPoseRot.setDouble(getTargetPose(VisionConstants.kTargetOffset, results.getBestTarget()).getRotation().getDegrees());
         yaw.setDouble(getVisionYaw());
         bestTarID.setInteger(getTargetID());
-        SmartDashboard.putNumber("Target Distance", getTagDistance());
+
+        if(m_target != null) {
+            SmartDashboard.putNumber("Target Distance", getTagDistance(m_target));
+        }
     }
 
     public int getTargetID() {
