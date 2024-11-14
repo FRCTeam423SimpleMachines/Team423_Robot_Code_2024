@@ -47,8 +47,8 @@ public class LoadIntake extends Command {
   public void execute() {
     double leftMeasuredRPM = m_ShooterSubsystem.getLeftRPM();
     double rightMeasuredRPM = m_ShooterSubsystem.getRightRPM();
-    double leftDesiredPower = (leftFeedforward.calculate(RPM) + leftSpeedController.calculate(leftMeasuredRPM))/1000;
-    double rightDesiredPower = -(rightFeedforward.calculate(RPM) + rightSpeedController.calculate(rightMeasuredRPM))/1000;
+    double leftDesiredPower =  -1;//(leftFeedforward.calculate(RPM) + leftSpeedController.calculate(leftMeasuredRPM))/1000;
+    double rightDesiredPower = -1; //(rightFeedforward.calculate(RPM) + rightSpeedController.calculate(rightMeasuredRPM))/1000;
     m_ShooterSubsystem.runShooter(leftDesiredPower, rightDesiredPower);
     m_ShooterSubsystem.setIntake(1);
   }

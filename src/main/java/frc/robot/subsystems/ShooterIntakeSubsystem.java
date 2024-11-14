@@ -42,7 +42,7 @@ public class ShooterIntakeSubsystem extends SubsystemBase{
 
     public void runShooter(double lpow, double rpow) {
         m_LeftShooterMoter.set(lpow);
-        m_RightShooterMoter.set(rpow);
+        m_RightShooterMoter.set(-rpow);
     }
 
     public void setShooterVolt(double lVoltage, double rVoltage ) {

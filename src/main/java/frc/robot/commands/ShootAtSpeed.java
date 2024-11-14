@@ -15,10 +15,10 @@ public class ShootAtSpeed extends Command {
   @SuppressWarnings({"PMD.UnusedPrivateField", "PMD.SingularField"})
   private final ShooterIntakeSubsystem m_ShooterSubsystem;
   private double RPM;
-  private PIDController leftSpeedController = new PIDController(0.01, 0.0, 0.0);
-  private SimpleMotorFeedforward leftFeedforward = new SimpleMotorFeedforward(0.0, 0.1);
-  private PIDController rightSpeedController = new PIDController(0.01, 0.0, 0.0);
-  private SimpleMotorFeedforward rightFeedforward = new SimpleMotorFeedforward(0.0, 0.1);
+  private PIDController leftSpeedController = new PIDController(0.05, 0.0, 0.0);
+  private SimpleMotorFeedforward leftFeedforward = new SimpleMotorFeedforward(0.1, 0.154);
+  private PIDController rightSpeedController = new PIDController(0.05, 0.0, 0.0);
+  private SimpleMotorFeedforward rightFeedforward = new SimpleMotorFeedforward(0.05, 0.075);
 
   /**
    * Creates a new ExampleCommand.
@@ -36,9 +36,9 @@ public class ShootAtSpeed extends Command {
   @Override
   public void initialize() {
     leftSpeedController.setSetpoint(RPM);
-    leftSpeedController.setTolerance(10);
+    leftSpeedController.setTolerance(100);
     rightSpeedController.setSetpoint(RPM);
-    rightSpeedController.setTolerance(10);
+    rightSpeedController.setTolerance(100);
 
   }
 
@@ -47,11 +47,25 @@ public class ShootAtSpeed extends Command {
   public void execute() {
     double leftMeasuredRPM = m_ShooterSubsystem.getLeftRPM();
     double rightMeasuredRPM = m_ShooterSubsystem.getRightRPM();
-    double leftDesiredPower = (leftFeedforward.calculate(RPM) + leftSpeedController.calculate(leftMeasuredRPM))/1000;
-    double rightDesiredPower = -(rightFeedforward.calculate(RPM) + rightSpeedController.calculate(rightMeasuredRPM))/1000;
-    m_ShooterSubsystem.runShooter(leftDesiredPower, rightDesiredPower);
-
+    double leftSet = 0;
+    double rightSet = 0;
+    double leftDesiredPower = (leftFeedforward.calculate(RPM) + leftSpeedController.calculate(leftMeasuredRPM, RPM))/1000;
+    double rightDesiredPower = (rightFeedforward.calculate(RPM) + rightSpeedController.calculate(rightMeasuredRPM, RPM))/1000;
+    m_ShooterSubsystem.runShooter(leftSet, rightSet);
+    //m_ShooterSubsystem.runShooter(1, 1);
+//sleep(30000);
+//Comment this out
     SmartDashboard.putNumber("Desired Power LEFT", leftDesiredPower);
     SmartDashboard.putNumber("Desired Power RIhGT", rightDesiredPower);
+
+    if(leftSpeedController.atSetpoint() && rightSpeedController.atSetpoint()){
+      m_ShooterSubsystem.setIntake(-1);
+    }
+  }
+
+  @Override
+  public void end(boolean isInterrupted) {
+    m_ShooterSubsystem.runShooter(0, 0);
+    m_ShooterSubsystem.setIntake(0);
   }
 }

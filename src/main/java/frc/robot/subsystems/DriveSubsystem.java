@@ -25,7 +25,13 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.networktables.GenericEntry;
-
+import edu.wpi.first.networktables.GenericPublisher;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.NetworkTableValue;
+import edu.wpi.first.networktables.Publisher;
+import edu.wpi.first.networktables.StructArrayPublisher;
+import edu.wpi.first.networktables.Topic;
 import edu.wpi.first.util.WPIUtilJNI;
 import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
@@ -39,6 +45,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class DriveSubsystem extends SubsystemBase {
+  GenericPublisher posePub;
   // Create MAXSwerveModules
   private final MAXSwerveModule m_frontLeft = new MAXSwerveModule(
       DriveConstants.kFrontLeftDrivingCanId,
@@ -63,6 +70,10 @@ public class DriveSubsystem extends SubsystemBase {
 
   // The gyro sensor
   private final AHRS m_gyro = new AHRS(SPI.Port.kMXP, (byte)200);
+
+  private final StructArrayPublisher<SwerveModuleState> swervePublisher;
+  NetworkTableInstance ninst = NetworkTableInstance.getDefault();
+  NetworkTable tablePose = ninst.getTable("advantagescopePose");
 
   private double xSpeedDelivered; 
   private double ySpeedDelivered; 
@@ -91,7 +102,11 @@ public class DriveSubsystem extends SubsystemBase {
   );
 
   private final Field2d m_field = new Field2d();
-    
+  double[] poseArray = new double[] {
+    m_odometry.getEstimatedPosition().getX(), 
+    m_odometry.getEstimatedPosition().getY(),
+    m_odometry.getEstimatedPosition().getRotation().getDegrees()
+  };
   
   private boolean drveSfty = true;
 
@@ -104,6 +119,7 @@ public class DriveSubsystem extends SubsystemBase {
   GenericEntry poseX = Shuffleboard.getTab("Drive").add("Pose X", m_odometry.getEstimatedPosition().getX()).getEntry();
   GenericEntry poseY = Shuffleboard.getTab("Drive").add("Pose Y", m_odometry.getEstimatedPosition().getY()).getEntry();
   GenericEntry poseRotation =  Shuffleboard.getTab("Drive").add("Pose Rotation", m_odometry.getEstimatedPosition().getRotation().getDegrees()).getEntry();
+  GenericEntry robPose = Shuffleboard.getTab("Drive").add("Pose",poseArray).getEntry();
   //GenericEntry counter =  Shuffleboard.getTab("Drive").add("Counter", m_counter).getEntry();
       
 
@@ -135,8 +151,12 @@ public class DriveSubsystem extends SubsystemBase {
       },
       this // Reference to this subsystem to set requirements
     );
-
+    posePub = tablePose.getTopic("pose").genericPublish("Pose2d");
     SmartDashboard.putData("Field", m_field);
+    swervePublisher = NetworkTableInstance.getDefault()
+      .getStructArrayTopic("/SwerveStates", SwerveModuleState.struct).publish();
+  
+
   }
 
   @Override
@@ -152,6 +172,12 @@ public class DriveSubsystem extends SubsystemBase {
         });
 
     m_field.setRobotPose(m_odometry.getEstimatedPosition());
+    
+    poseArray = new double[] {
+    m_odometry.getEstimatedPosition().getX(), 
+    m_odometry.getEstimatedPosition().getY(),
+    m_odometry.getEstimatedPosition().getRotation().getDegrees()
+  };
 
     drveSfty = driveSafety.getBoolean(true);
     
@@ -165,12 +191,20 @@ public class DriveSubsystem extends SubsystemBase {
     poseY.setDouble(m_odometry.getEstimatedPosition().getY()); 
     poseRotation.setDouble(m_odometry.getEstimatedPosition().getRotation().getDegrees());
 
-    pitch.setDouble(m_gyro.getPitch()); 
+    pitch.setDouble(m_gyro.getPitch());
+    
+    robPose.setValue(poseArray);
     
     SmartDashboard.putNumber("position x", m_odometry.getEstimatedPosition().getX());
     SmartDashboard.putNumber("position y", m_odometry.getEstimatedPosition().getY());
-
+    swervePublisher.set(new SwerveModuleState[] {
+      m_frontLeft.getState(),
+      m_frontRight.getState(),
+      m_rearLeft.getState(),
+      m_rearRight.getState()
+    });
     
+    //posePub.setValue(m_odometry.getEstimatedPosition());
   }
 
   

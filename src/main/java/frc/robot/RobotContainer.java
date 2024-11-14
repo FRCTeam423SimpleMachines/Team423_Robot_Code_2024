@@ -11,6 +11,7 @@ import frc.robot.commands.EndShoot;
 import frc.robot.commands.LoadIntake;
 import frc.robot.commands.PivotToAngle;
 import frc.robot.commands.Shoot;
+import frc.robot.commands.ShootAtSpeed;
 import frc.robot.commands.ShootAuto;
 import frc.robot.commands.visionAim.TagShift;
 import frc.robot.subsystems.ClimbSubsystem;
@@ -21,10 +22,12 @@ import frc.robot.subsystems.VisionSubsystem;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
+import com.pathplanner.lib.util.PathPlannerLogging;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
@@ -47,7 +50,8 @@ public class RobotContainer {
   private final ShooterIntakeSubsystem m_ShooterSubsystem = new ShooterIntakeSubsystem();
   private final ClimbSubsystem m_Climb = new ClimbSubsystem(); 
   private final PivotSubsystem m_PivotSubsystem = new PivotSubsystem();
-
+  private final Field2d field;
+  
   private final CommandJoystick m_driverController1 = new CommandJoystick(ControlConstants.kControllerPort1); 
   private final CommandJoystick m_driverController2 = new CommandJoystick(ControlConstants.kControllerPort2); 
 
@@ -57,10 +61,12 @@ public class RobotContainer {
 
   private SlewRateLimiter slewY = new SlewRateLimiter(2);
   private SlewRateLimiter slewX = new SlewRateLimiter(2);
+
+  
   
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
-
+    
     //Register named commads for pathplanner 
     NamedCommands.registerCommand("AimAtSpeaker", new AimAtSpeaker(m_VisionSubsystem, m_DriveSubsystem));
     NamedCommands.registerCommand("ShootAuto", new ShootAuto(m_ShooterSubsystem));
@@ -69,8 +75,14 @@ public class RobotContainer {
     //NamedCommands.registerCommand("PickUpInit", new ParallelCommandGroup(null)); //Command group to set the robot up to pick up rings during auton
 
     m_chooser = AutoBuilder.buildAutoChooser();
+    field = new Field2d();
     
     Shuffleboard.getTab("Autonomous").add(m_chooser);
+
+    PathPlannerLogging.setLogTargetPoseCallback((pose) -> {
+            // Do whatever you want with the pose here
+            field.getObject("target pose").setPose(pose);
+        });
 
     // Configure the trigger bindings
     configureBindings();
@@ -125,11 +137,13 @@ public class RobotContainer {
     //Curremt range: ~200-245
     //Near Vertical 
     dPadUp2.onTrue(new PivotToAngle(m_PivotSubsystem, 195));
-    dPadDown2.onTrue(new PivotToAngle(m_PivotSubsystem, 217));
+    
+    //Side or 1 robot away
+    dPadRight2.onTrue(new PivotToAngle(m_PivotSubsystem, 217));
     //Loading position
     dPadLeft2.onTrue(new PivotToAngle(m_PivotSubsystem, 240));
     //Shoot Straight Subwoofer
-    dPadRight2.onTrue(new PivotToAngle(m_PivotSubsystem, 220));  
+    dPadDown2.onTrue(new PivotToAngle(m_PivotSubsystem, 220));
 
 
     //Shooting from side subwoofer
@@ -138,6 +152,7 @@ public class RobotContainer {
     aButton2.onTrue(new PivotToAngle(m_PivotSubsystem, 235));
     //xButton2.onTrue(new PivotToAngle(m_PivotSubsystem, pivotTune-=5));
     yButton2.whileTrue(new RunCommand( () -> m_Climb.runClimb(1)));
+    xButton2.whileTrue(new RunCommand( () -> m_Climb.runClimb(-1)));
 
 
     bButton1.whileTrue(new TagShift(m_VisionSubsystem, m_DriveSubsystem));

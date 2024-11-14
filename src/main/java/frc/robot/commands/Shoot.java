@@ -47,7 +47,7 @@ public class Shoot extends Command {
     double leftMeasuredRPM = m_ShooterSubsystem.getLeftRPM();
     double rightMeasuredRPM = m_ShooterSubsystem.getRightRPM();
     double leftDesiredPower = (1);//leftFeedforward.calculate(RPM) + leftSpeedController.calculate(leftMeasuredRPM))/1000;
-    double rightDesiredPower = -(1);//rightFeedforward.calculate(RPM) + rightSpeedController.calculate(rightMeasuredRPM))/1000;
+    double rightDesiredPower = (1);//rightFeedforward.calculate(RPM) + rightSpeedController.calculate(rightMeasuredRPM))/1000;
     m_ShooterSubsystem.runShooter(leftDesiredPower, rightDesiredPower);
     
     if(leftMeasuredRPM > 5000){
