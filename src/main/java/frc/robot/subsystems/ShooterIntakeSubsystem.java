@@ -38,11 +38,12 @@ public class ShooterIntakeSubsystem extends SubsystemBase{
         m_IntakeEncoder = m_IntakeSparkMax.getEncoder();
         sensorInput = new DigitalInput(IntakeConstants.kDIOInputID1);
         sensorInput2 = new DigitalInput(IntakeConstants.kDIOInputID2);   
+        m_RightShooterMoter.setInverted(true);
     }
 
     public void runShooter(double lpow, double rpow) {
         m_LeftShooterMoter.set(lpow);
-        m_RightShooterMoter.set(-rpow);
+        m_RightShooterMoter.set(rpow);
     }
 
     public void setShooterVolt(double lVoltage, double rVoltage ) {

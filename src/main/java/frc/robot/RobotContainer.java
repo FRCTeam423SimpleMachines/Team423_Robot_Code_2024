@@ -170,7 +170,7 @@ public class RobotContainer {
 
     aButton1.onTrue(new AimAtSpeaker(m_VisionSubsystem, m_DriveSubsystem));
 
-    rBumper2.whileTrue(new Shoot(m_ShooterSubsystem));
+    rBumper2.whileTrue(new ShootAtSpeed(m_ShooterSubsystem, 4000));
 
     lBumper2.onTrue(new LoadIntake(m_ShooterSubsystem));
 
